@@ -6,6 +6,7 @@
 #include "SystemDriveBus.h"
 //#include <iostream>
 #include <sstream>
+#include <strstream>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -224,6 +225,8 @@ void ImportExport::SetScene()
         }
     }
 
+    PushSceneToMySQL(); //将总线上的对象信息存入数据库
+
     for (auto vDisplayBusElement : SystemDriveBus::DisplayDriveBus)                                //遍历总线里的指针，调用Display函数，画出地图
     {
         vDisplayBusElement.second->Display();
@@ -245,6 +248,38 @@ void ImportExport::SetScene()
     ImportExport::fout << "legend([h1, h2], 'Macro基站', 'SmallCell基站');" << endl;
 
     ImportExport::fout.close();
+}
+
+void ImportExport::PushSceneToMySQL()
+{
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "lee", "281217", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.second->sGetType() == "class MacroCell *")
+            {
+                MacroCell *_tempMacroCell = dynamic_cast<MacroCell *>(_temp.second);
+
+                //int 转 string
+                strstream ss;
+                string s;
+                ss << _tempMacroCell->GetYPoint();
+                ss >> s;
+
+                if (mysql->insert("INSERT INTO MacroBaseStation(dXPoint) VALUES(" + s + ")"))
+                {
+                    cout << "插入成功" << endl;
+                }
+                else cout << "执行失败" << endl;
+            }
+        }
+    } else cout << "连接未建立" << endl;
+}
+
+void ImportExport::SetSceneByMySQL()
+{
+
 }
 
 void ImportExport::system_config()
