@@ -126,6 +126,16 @@ public:
     double getDYPoint() const;
     int getIndoorOrOutdoor() const;
 
+    double getRelativeXPoint() const;
+
+    double getRelativeYPoint() const;
+
+    int getUserID() const;
+
+    int getSmallCellID() const;
+
+    int getCellID() const;
+
     static int countTag;
 
     UserHardwareEntity hardware;

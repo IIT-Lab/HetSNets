@@ -254,13 +254,36 @@ void ImportExport::PushSceneToMySQL()
     MySQLManager *mysql = new MySQLManager("127.0.0.1", "lee", "281217", "platform", (unsigned int)3306);
     mysql->initConnection();
     if(mysql->getConnectionStatus()) {
+        //清空数据库中的数据表
+        string cleanMacroBaseStation = "DELETE FROM MacroBaseStation";
+        if (mysql->insert(cleanMacroBaseStation))
+        {
+            cout << "删除成功" << endl;
+        }
+        else cout << "删除失败" << endl;
+
+        string cleanSmallCellBaseStation = "DELETE FROM SmallCellBaseStation";
+        if (mysql->insert(cleanSmallCellBaseStation))
+        {
+            cout << "删除成功" << endl;
+        }
+        else cout << "删除失败" << endl;
+
+        string cleanUser = "DELETE FROM User";
+        if (mysql->insert(cleanSmallCellBaseStation))
+        {
+            cout << "删除成功" << endl;
+        }
+        else cout << "删除失败" << endl;
+
+        //将基站和用户信息插入数据库
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
             if (_temp.second->sGetType() == "class MacroCell *")
             {
                 MacroCell *_tempMacroCell = dynamic_cast<MacroCell *>(_temp.second);
 
-                //int 转 string
+                //数字 转 string
                 string iID = intToString(_tempMacroCell->iGetID());
                 string macroID = intToString(_tempMacroCell->GetmacroID());
                 string dXPoint = doubleToString(_tempMacroCell->GetXPoint());
@@ -281,18 +304,43 @@ void ImportExport::PushSceneToMySQL()
             {
                 SmallCell *_tempSmallCell = dynamic_cast<SmallCell *>(_temp.second);
 
-                //int 转 string
+                //数字 转 string
                 string iID = intToString(_tempSmallCell->iGetID());
                 string SmallCellID = intToString(_tempSmallCell->getSmallCellID());
                 string dXPoint = doubleToString(_tempSmallCell->GetXPoint());
                 string dYPoint = doubleToString(_tempSmallCell->GetYPoint());
                 string relativedXPoint = doubleToString(_tempSmallCell->getRelativeXPoint());
                 string relativedYPoint = doubleToString(_tempSmallCell->getRelativeYPoint());
+                string cellID = intToString(_tempSmallCell->getCellID());
 
                 //构造MySQL插入语句
-                string SQLString = "INSERT INTO SmallCellBaseStation(iID, SmallCellID, dXPoint, dYPoint, relativedXPoint, relativedYPoint) "
-                                           "VALUES(" + iID + "," + SmallCellID + "," + dXPoint + "," + dYPoint + "," + relativedXPoint + "," + relativedYPoint + ")";
+                string SQLString = "INSERT INTO SmallCellBaseStation(iID, SmallCellID, dXPoint, dYPoint, relativedXPoint, relativedYPoint, cellID) "
+                                           "VALUES(" + iID + "," + SmallCellID + "," + dXPoint + "," + dYPoint + "," + relativedXPoint + "," + relativedYPoint + "," + cellID + ")";
 
+                if (mysql->insert(SQLString))
+                {
+                    cout << "插入成功" << endl;
+                }
+                else cout << "执行失败" << endl;
+            }
+
+            if (_temp.second->sGetType() == "class User *")
+            {
+                User *_tempUser = dynamic_cast<User *>(_temp.second);
+
+                //数字 转 string
+                string iID = intToString(_tempUser->iGetID());
+                string UserID = intToString(_tempUser->getUserID());
+                string dXPoint = doubleToString(_tempUser->getDXPoint());
+                string dYPoint = doubleToString(_tempUser->getDYPoint());
+                string relativedXPoint = doubleToString(_tempUser->getRelativeXPoint());
+                string relativedYPoint = doubleToString(_tempUser->getRelativeYPoint());
+                string cellID = intToString(_tempUser->getCellID());
+                string SmallCellID = intToString(_tempUser->getSmallCellID());
+
+                //构造MySQL插入语句
+                string SQLString = "INSERT INTO User(iID, UserID, dXPoint, dYPoint, relativedXPoint, relativedYPoint, cellID, SmallCellID) "
+                                           "VALUES(" + iID + "," + UserID + "," + dXPoint + "," + dYPoint + "," + relativedXPoint + "," + relativedYPoint + "," + cellID + "," + SmallCellID + ")";
                 if (mysql->insert(SQLString))
                 {
                     cout << "插入成功" << endl;

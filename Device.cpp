@@ -748,3 +748,23 @@ double User::getDYPoint() const {
 int User::getIndoorOrOutdoor() const {
     return indoorOrOutdoor;
 }
+
+double User::getRelativeXPoint() const {
+    return relativeXPoint;
+}
+
+double User::getRelativeYPoint() const {
+    return relativeYPoint;
+}
+
+int User::getUserID() const {
+    return UserID;
+}
+
+int User::getSmallCellID() const {
+    return SmallCellID;
+}
+
+int User::getCellID() const {
+    return cellID;
+}
