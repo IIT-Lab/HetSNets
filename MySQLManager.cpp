@@ -193,3 +193,21 @@ void MySQLManager::clearResultList()
 {
     this ->resultList.clear();
 }
+
+string intToString(int _number)
+{
+    strstream ss;
+    string s;
+    ss << _number;
+    ss >> s;
+    return s;
+}
+
+string doubleToString(double _number)
+{
+    strstream ss;
+    string s;
+    ss << _number;
+    ss >> s;
+    return s;
+}

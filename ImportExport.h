@@ -25,6 +25,7 @@ public:
     void SetScene();
     void PushSceneToMySQL();
     void SetSceneByMySQL();
+    void PushChannelToMySQL();
     void SetPtr2Bus(Interface* _InterfaceTemp);
     static ofstream fout;                 //将要写的文件定义为静态变量，方便多个类对文件进行写操作
 };

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include <strstream>
 
 using namespace std;
 
@@ -64,5 +65,8 @@ private:
     char * PASSWORD;
     char * DBNAME;
 };
+
+string intToString(int _number);
+string doubleToString(double _number);
 
 #endif //HETSNETS_MYSQLMANAGER_H

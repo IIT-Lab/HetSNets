@@ -229,6 +229,10 @@ const vector<int> &MacroCell::getVecSample() const {
     return vecSample;
 }
 
+int MacroCell::GetmacroID() {
+    return macroID;
+}
+
 ///////////////////////////SmallCell类///////////////////////////////
 
 SmallCell::SmallCell()
@@ -398,6 +402,22 @@ double SmallCell::GetYPoint()
 
 int SmallCell::getCellID() const {
     return cellID;
+}
+
+double SmallCell::getRelativeXPoint() const {
+    return relativeXPoint;
+}
+
+double SmallCell::getRelativeYPoint() const {
+    return relativeYPoint;
+}
+
+int SmallCell::getSmallCellID() const {
+    return SmallCellID;
+}
+
+double SmallCell::getSmallCellRadius() const {
+    return SmallCellRadius;
 }
 
 /*************************************WiFi网络类**************************************/

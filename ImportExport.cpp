@@ -6,7 +6,6 @@
 #include "SystemDriveBus.h"
 //#include <iostream>
 #include <sstream>
-#include <strstream>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -262,12 +261,39 @@ void ImportExport::PushSceneToMySQL()
                 MacroCell *_tempMacroCell = dynamic_cast<MacroCell *>(_temp.second);
 
                 //int 转 string
-                strstream ss;
-                string s;
-                ss << _tempMacroCell->GetYPoint();
-                ss >> s;
+                string iID = intToString(_tempMacroCell->iGetID());
+                string macroID = intToString(_tempMacroCell->GetmacroID());
+                string dXPoint = doubleToString(_tempMacroCell->GetXPoint());
+                string dYPoint = doubleToString(_tempMacroCell->GetYPoint());
 
-                if (mysql->insert("INSERT INTO MacroBaseStation(dXPoint) VALUES(" + s + ")"))
+                //构造MySQL插入语句
+                string SQLString = "INSERT INTO MacroBaseStation(iID, macroID, dXPoint, dYPoint) "
+                                           "VALUES(" + iID + "," + macroID + "," + dXPoint + "," + dYPoint + ")";
+
+                if (mysql->insert(SQLString))
+                {
+                    cout << "插入成功" << endl;
+                }
+                else cout << "执行失败" << endl;
+            }
+
+            if (_temp.second->sGetType() == "class SmallCell *")
+            {
+                SmallCell *_tempSmallCell = dynamic_cast<SmallCell *>(_temp.second);
+
+                //int 转 string
+                string iID = intToString(_tempSmallCell->iGetID());
+                string SmallCellID = intToString(_tempSmallCell->getSmallCellID());
+                string dXPoint = doubleToString(_tempSmallCell->GetXPoint());
+                string dYPoint = doubleToString(_tempSmallCell->GetYPoint());
+                string relativedXPoint = doubleToString(_tempSmallCell->getRelativeXPoint());
+                string relativedYPoint = doubleToString(_tempSmallCell->getRelativeYPoint());
+
+                //构造MySQL插入语句
+                string SQLString = "INSERT INTO SmallCellBaseStation(iID, SmallCellID, dXPoint, dYPoint, relativedXPoint, relativedYPoint) "
+                                           "VALUES(" + iID + "," + SmallCellID + "," + dXPoint + "," + dYPoint + "," + relativedXPoint + "," + relativedYPoint + ")";
+
+                if (mysql->insert(SQLString))
                 {
                     cout << "插入成功" << endl;
                 }
@@ -275,6 +301,11 @@ void ImportExport::PushSceneToMySQL()
             }
         }
     } else cout << "连接未建立" << endl;
+}
+
+void ImportExport::PushChannelToMySQL()
+{
+
 }
 
 void ImportExport::SetSceneByMySQL()
@@ -326,3 +357,5 @@ void ImportExport::SetPtr2Bus(Interface *_InterfaceTemp)
     SystemDriveBus::DisplayDriveBus.insert(pair<int, Interface*>(_InterfaceTemp->iGetPriority(), _InterfaceTemp));
     SystemDriveBus::SlotDriveBus.insert(pair<int, Interface*>(_InterfaceTemp->iGetPriority(), _InterfaceTemp));
 }
+
+

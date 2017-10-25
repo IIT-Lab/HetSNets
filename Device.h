@@ -30,6 +30,7 @@ public:
     static void CellularSysInit(int cell_num, double cell_radius); //生成所有基站的位置信息，存在cellPosition中
     double GetXPoint();
     double GetYPoint();
+    int GetmacroID();
 
     void GenerateSample();
     const vector<int> &getVecSample() const;
@@ -66,6 +67,14 @@ public:
     int getCellID() const;
 
     static int countTag;
+
+    double getRelativeXPoint() const;
+
+    double getRelativeYPoint() const;
+
+    int getSmallCellID() const;
+
+    double getSmallCellRadius() const;
 
     SmallCellHardwareEntity hardware;
     SmallCellSoftwareEntity software;
