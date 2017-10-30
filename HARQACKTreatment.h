@@ -90,4 +90,43 @@ public:
     int layerNum;
 };
 
+/****************************根据2006 LTE DL存档代码编写****************************/
+
+//发送端ARQ过程缓冲区，5表示每条链路有5个ARQ过程，在本程序中各ARQ过程采用"停等"的机制
+class ARQ_processes_Tx_buffers
+{
+    ARQ_processes_Tx_buffers();
+    ~ARQ_processes_Tx_buffers();
+    static  ARQ_processes_Tx_buffers * Create();//创建函数
+    void initial(int _RxID);
+
+    int RxID; //接收机ID
+    int ARQ_num;
+    block_info block_info;
+    int Transmited_Indicator; //元素i表示当前传输块的状态："1"表示已经被发出，正在等待响应；"0"表示等待调度的重传包；"-1"表示buffer为空。
+    int Current_Process_id; //当前时刻传输的ARQ process号码【0，4】
+};
+
+//数据块信息的封装格式
+struct block_info
+{
+    int L2_index;//层2块索引
+    int transport_format;//传输格式
+    int transport_block_size;// 发送端已经发出但还没有收到"正确确认"的数据包的传输块大小；
+    int number_of_transmission; // 元素i表示相应传输块的发送次数
+    //每个数据包的传输时间
+    time_struct t_packet;
+    time_struct in_quene_delay;//进入高优先级队列的延时结构体
+};
+
+//统计时间的结构体
+struct time_struct
+{
+    int time_length;//时间长度
+    int time_start;//起始时间
+    int time_end;//截至时间
+};
+
+
+
 #endif //HETSNETS_HARQACKTREATMENT_H

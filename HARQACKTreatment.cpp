@@ -164,3 +164,35 @@ void TTxBuffer::initial(int _RxID)
     }
     RxID = _RxID;
 }
+
+/****************************根据2006 LTE DL存档代码编写****************************/
+
+ARQ_processes_Tx_buffers::ARQ_processes_Tx_buffers()
+{
+
+}
+
+ARQ_processes_Tx_buffers::~ARQ_processes_Tx_buffers()
+{
+
+}
+
+ARQ_processes_Tx_buffers *ARQ_processes_Tx_buffers::Create()
+{
+    ARQ_processes_Tx_buffers *ARQ_processes_Tx_buffersPtr;
+    ARQ_processes_Tx_buffersPtr = new ARQ_processes_Tx_buffers();
+    return ARQ_processes_Tx_buffersPtr;
+}
+
+void ARQ_processes_Tx_buffers::initial(int _RxID)
+{
+    //初始化用户的ARQ过程发送缓存
+    ARQ_num = 0;
+    Current_Process_id = -1;
+    Transmited_Indicator = -1;
+    block_info.t_packet.time_start = 0;
+    block_info.t_packet.time_end = 0;
+    block_info.t_packet.time_length = 0;
+
+    RxID = _RxID;
+}

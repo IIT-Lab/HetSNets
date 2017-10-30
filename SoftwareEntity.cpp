@@ -223,24 +223,30 @@ void SoftwareEntityTx::TransmitID2AllRx()
 
 void SoftwareEntityTx::Scheduler()
 {
+//    (1)提取扇区中有数据要发的用户参与资源调度
+
+//    (2)对扇区内的用户进行信道资源的分配
+
+//    (3)进行功率分配
 
 }
 
 void SoftwareEntityTx::WorkSlotSoftwareEntity()
 {
+    int RxID;
+    for (auto _temp : SystemDriveBus::SlotDriveBus)
+    {
+        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
+        {
+            User *_tempUser = dynamic_cast<User *>(_temp.second);
+            RxID = _tempUser->iGetID();
 
-//    int RxID;
-//    for (auto _temp : SystemDriveBus::SlotDriveBus)
-//    {
-//        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
-//        {
-//            User *_tempUser = dynamic_cast<User *>(_temp.second);
-//            RxID = _tempUser->iGetID();
+
 //            TTxBuffer* TTxBufferPtr = TTxBuffer::Create();
 //            TTxBufferPtr->initial(RxID);		//初始化发送缓存为空
 //            mapTTxBuffer.insert(pair<int, TTxBuffer*>(RxID, TTxBufferPtr));
-//        }
-//    }
+        }
+    }
 
     TransmitID2AllRx();	//把该发射机的ID坐标信息发送给每个接收机
     InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
