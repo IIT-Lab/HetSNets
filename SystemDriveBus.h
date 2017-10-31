@@ -13,6 +13,7 @@
 #include "channel.h"
 #include "Computing.h"
 #include "Sense.h"
+#include "HARQACKTreatment.h"
 
 using namespace std;
 
@@ -47,6 +48,7 @@ namespace SystemDriveBus
     extern map<int, deviceLocation> WifiPosition;//存放所有的Wifi基站的位置
     extern sinrComputing systemSinrComputing;//存储系统SINR参数
     extern SenseInterface systemSenseInterface;//频谱感知接口
+    extern map<int, statistic_variable*> ID2UserVariable;//用户ID——用户的响应统计量
 
     extern map<int, Interface*> ID2PtrBus;//ID到基类指针映射的登记表，所有系统中的地形和设备都需要登记
     extern multimap<string, Interface*>Type2PtrBus; //存储生成对象的类型和指针的容器

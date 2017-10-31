@@ -248,9 +248,24 @@ void SoftwareEntityTx::WorkSlotSoftwareEntity()
             high_priority_sequencePtr->initial(RxID);
             map_high_priority_queue.insert(pair<int, high_priority_sequence*>(RxID, high_priority_sequencePtr));
 
-//            TTxBuffer* TTxBufferPtr = TTxBuffer::Create();
-//            TTxBufferPtr->initial(RxID);		//初始化发送缓存为空
-//            mapTTxBuffer.insert(pair<int, TTxBuffer*>(RxID, TTxBufferPtr));
+            map<int, message_arq_ack*> map_message_arq_ack;
+            for (int i = 0; i < 3; i++)
+            {
+                message_arq_ack* message_arq_ackPtr = message_arq_ack::Create();
+                message_arq_ackPtr->initial();
+                map_message_arq_ack.insert(pair<int, message_arq_ack*>(i, message_arq_ackPtr));
+            }
+            uplink_ACK_feedback_queues.insert(pair<int, map<int, message_arq_ack*>>(RxID, map_message_arq_ack));
+        }
+    }
+
+    for (auto _temp : SystemDriveBus::SlotDriveBus)
+    {
+        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
+        {
+            User *_tempUser = dynamic_cast<User *>(_temp.second);
+            RxID = _tempUser->iGetID();
+            ARQ_processes_modify_for_full_buffer(RxID);
         }
     }
 
@@ -277,8 +292,42 @@ void SoftwareEntityTx::InterferenceRgister()
             selectedRB++;
         }
     }
-
-
 }
 
+void SoftwareEntityTx::ARQ_processes_modify_for_full_buffer(int _RxID)
+/************************************************************************************************
+函数名称：
+主要功能：full buffer业务
+输入参数：
+输出参数：
+其他信息：
+*************************************************************************************************/
+{
+    int RxID = _RxID;
+    int arq_ack = uplink_ACK_feedback_queues.at(RxID).at(SystemDriveBus::iSlot % 3)->ARQ_ACK;//上行ACK反馈信息
+    int number_of_transmission = map_ARQ_processes_Tx_buffers.at(RxID)->map_arq_num_to_block_info.at(uplink_ACK_feedback_queues.at(RxID).at(SystemDriveBus::iSlot % 3)->ARQ_process_id)->number_of_transmission;//重传次数
+
+    //检查用户相应时刻的上行ACK反馈信息
+    switch(arq_ack)
+    {
+        //为0，没有接收得到相应用户的ACK信息，不作处理
+        case 0:
+//            break;
+            //为”-1”，说明该用户数据没有被正确接收，需要重传；
+        case -1:
+            //判断重传次数，如果超过重传次数则丢弃该包
+            if (number_of_transmission == NUM_OF_RETRANSMISSION)
+            {
+                SystemDriveBus::ID2UserVariable.at(RxID)->packet_drop++;
+            }
+            //将没有被正确接收的ARQ过程中的data block发送到high priority queue中，等待重传
+            //从ARQ Tx buffer中将数据包信息存入高优先级队列，等待重传
+            else
+            {
+                int Queue_Tail = map_high_priority_queue.at(RxID)->Queue_Tail;
+                blockInfo* blockInfoPtr = map_ARQ_processes_Tx_buffers.at(RxID)->map_arq_num_to_block_info.at(uplink_ACK_feedback_queues.at(RxID).at(SystemDriveBus::iSlot % 3)->ARQ_process_id);
+                map_high_priority_queue.at(RxID)->map_block_info_on_queue.insert(pair<int, blockInfo*>(Queue_Tail, blockInfoPtr));
+            }
+    }
+}
 

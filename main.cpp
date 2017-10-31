@@ -11,6 +11,7 @@ using namespace std;
 int SystemDriveBus::iSlot;
 sinrComputing SystemDriveBus::systemSinrComputing;
 SenseInterface SystemDriveBus::systemSenseInterface;
+map<int, statistic_variable*> SystemDriveBus::ID2UserVariable;
 
 int main()
 {
@@ -54,6 +55,20 @@ int main()
         system.GenerateSenseFile();//创建存储频谱感知参数的matlab文件
         SenseInterface tempSenseInterface = SenseInterface::GetInstance();
         SystemDriveBus::systemSenseInterface = tempSenseInterface;
+    }
+
+
+    //初始化用户的响应统计量
+    for (auto _temp : SystemDriveBus::SlotDriveBus)
+    {
+        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
+        {
+            User *_tempUser = dynamic_cast<User *>(_temp.second);
+            int RxID = _tempUser->iGetID();
+            statistic_variable* statistic_variablePtr = statistic_variable::Create();
+            statistic_variablePtr->initial(RxID);
+            SystemDriveBus::ID2UserVariable.insert(pair<int, statistic_variable*>(RxID, statistic_variablePtr));
+        }
     }
 
     int slot = SystemDriveBus::system_sense.get_numOfSlot();//总时隙数

@@ -11,7 +11,7 @@
 #include <vector>
 #include<iostream>
 
-#include"Traffic.h"
+#include "Traffic.h"
 #include "Global.h"
 
 using namespace std;
@@ -105,8 +105,8 @@ public:
 
     int RxID; //接收机ID
     int ARQ_num;
-    blockInfo* block_info_ptr;
-    int Transmited_Indicator; //元素i表示当前传输块的状态："1"表示已经被发出，正在等待响应；"0"表示等待调度的重传包；"-1"表示buffer为空。
+    map<int, blockInfo*> map_arq_num_to_block_info;//BLOCK_INFO block_info[ARQ_NUM]
+    map<int, int> map_arq_num_to_Transmited_Indicator; //表示当前传输块的状态："1"表示已经被发出，正在等待响应；"0"表示等待调度的重传包；"-1"表示buffer为空。
     int Current_Process_id; //当前时刻传输的ARQ process号码【0，4】
 };
 
@@ -142,8 +142,6 @@ public:
     int time_end;//截至时间
 };
 
-/****************************根据2006 LTE DL存档代码编写****************************/
-
 //系统中每个用户等待重传的高优先级队列
 class high_priority_sequence
 {
@@ -153,10 +151,53 @@ public:
     static  high_priority_sequence * Create();//创建函数
     void initial(int _RxID);
 
-    blockInfo block_info_on_queue[HIGH_QUENE_LENGTH];//队列长度为4
+    map<int, blockInfo*> map_block_info_on_queue;//队列长度为4
     int Queue_Head;
     int Queue_Tail;
     int RxID; //接收机ID
+};
+
+class statistic_variable
+{
+public:
+    statistic_variable();
+    ~statistic_variable();
+    static  statistic_variable * Create();//创建函数
+    void initial(int _RxID);
+
+    int RxID; //接收机ID
+
+    //每个文件的传输时间,此时的time_length表示用户所有文件的传输时间之和
+    timeStruct* t_file_ptr;
+    //每个用户的丢包数
+    int packet_drop;
+    //每个用户正确接收的包数
+    int right_packet;
+    //每个用户正确接收的bit数
+    int right_bit_num;
+    //每个用户错误接收的包数
+    int error_packet;
+    //平均包呼叫吞吐量(对每个用户而言)  一个包呼叫过程即一个文件传输过程
+    double average_packet_call_throught;
+    //每个用户误帧率
+    double FER_session;
+    //每个用户的丢包率
+    double FER_residual;
+    //每个用户的包时延
+    double packet_delay;
+};
+
+//ARQ过程的ACK消息
+class message_arq_ack
+{
+public:
+    message_arq_ack();
+    ~message_arq_ack();
+    static  message_arq_ack * Create();//创建函数
+    void initial();
+
+    int ARQ_ACK;//ARQ过程的ACK指示，初始化时设为0，"1"表示ACK，-1表示NACK，"0"表示无内容。
+    int ARQ_process_id; //表示上述的ARQ 反馈信息对应的ARQ process ID。
 };
 
 

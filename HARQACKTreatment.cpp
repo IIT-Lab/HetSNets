@@ -2,6 +2,7 @@
 // Created by lee on 17-8-31.
 //
 #include"HARQACKTreatment.h"
+#include "SystemDriveBus.h"
 
 const int HARQStateWatingForACKFeedback = 1;
 const int HARQStateWatingForTxbufferSent = 0;
@@ -169,7 +170,11 @@ void TTxBuffer::initial(int _RxID)
 
 ARQ_processes_Tx_buffers::ARQ_processes_Tx_buffers()
 {
-    block_info_ptr = blockInfo::Create();
+    for (int j = 0; j < ARQNUM; j++)
+    {
+        blockInfo* block_info_ptr = blockInfo::Create();
+        map_arq_num_to_block_info.insert(pair<int, blockInfo*>(j, block_info_ptr));
+    }
 }
 
 ARQ_processes_Tx_buffers::~ARQ_processes_Tx_buffers()
@@ -189,13 +194,14 @@ void ARQ_processes_Tx_buffers::initial(int _RxID)
     //初始化用户的ARQ过程发送缓存
     ARQ_num = 0;
     Current_Process_id = -1;
-    Transmited_Indicator = -1;
-    block_info_ptr->initial();
+    for (int j = 0; j < ARQNUM; j++)
+    {
+        map_arq_num_to_Transmited_Indicator.insert(pair<int, int>(j, -1));
+        map_arq_num_to_block_info.at(j)->initial();
+    }
 
     RxID = _RxID;
 }
-
-/****************************根据2006 LTE DL存档代码编写****************************/
 
 high_priority_sequence::high_priority_sequence()
 {
@@ -267,4 +273,61 @@ void timeStruct::initial()
     time_end = 0;
     time_length = 0;
     time_start = 0;
+}
+
+statistic_variable::statistic_variable()
+{
+    t_file_ptr = timeStruct::Create();
+}
+
+statistic_variable::~statistic_variable()
+{
+
+}
+
+statistic_variable *statistic_variable::Create()
+{
+    statistic_variable *statistic_variablePtr;
+    statistic_variablePtr = new statistic_variable();
+    return statistic_variablePtr;
+}
+
+void statistic_variable::initial(int _RxID)
+{
+    RxID = _RxID;
+
+    ///用户的响应统计量初始化
+    packet_drop=0;
+    right_packet=0;
+    error_packet=0;
+    right_bit_num=0;
+    average_packet_call_throught=-1;
+    FER_session=-1;
+    FER_residual=-1;
+    packet_delay=0;
+
+    t_file_ptr->initial();
+}
+
+message_arq_ack::message_arq_ack()
+{
+
+}
+
+message_arq_ack::~message_arq_ack()
+{
+
+}
+
+message_arq_ack *message_arq_ack::Create()
+{
+    message_arq_ack *message_arq_ackPtr;
+    message_arq_ackPtr = new message_arq_ack();
+    return message_arq_ackPtr;
+}
+
+void message_arq_ack::initial()
+{
+    ARQ_ACK = 0;//ACK消息队列清零
+    ARQ_process_id = 0;
 }

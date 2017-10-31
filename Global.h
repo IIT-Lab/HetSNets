@@ -18,5 +18,8 @@
 
 #define HIGH_QUENE_DELAY  10 //进入高优先级队列需要等待10个延时
 #define HIGH_QUENE_LENGTH 4+HIGH_QUENE_DELAY//高优先级队列的长度
+#define NUM_OF_RETRANSMISSION 6 //数据的最大重传次数
+
+
 
 #endif //HETSNETS_GLOBAL_H

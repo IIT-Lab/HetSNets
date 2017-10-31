@@ -32,6 +32,7 @@ public:
     void Scheduler();//调度，装Txbuffer
     void WorkSlotSoftwareEntity(); //发射软体的workslot
     void InterferenceRgister();//进行干扰登记
+    void ARQ_processes_modify_for_full_buffer(int _RxID);//full buffer业务
 
 private:
     double dTxPower;
@@ -39,6 +40,7 @@ private:
 //    map<int, TTxBuffer*> mapTTxBuffer; //接收机ID,发送缓存
     map<int, ARQ_processes_Tx_buffers*> map_ARQ_processes_Tx_buffers; //接收机ID,发送缓存
     map<int, high_priority_sequence*> map_high_priority_queue; //接收机ID,各用户发送端缓存重发包的高优先级队列
+    map<int, map<int, message_arq_ack*>> uplink_ACK_feedback_queues; //<接收机ID, <[0, 2], ACK消息>>
     double dXPoint;
     double dYPoint;
 };
