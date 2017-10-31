@@ -169,7 +169,7 @@ void TTxBuffer::initial(int _RxID)
 
 ARQ_processes_Tx_buffers::ARQ_processes_Tx_buffers()
 {
-
+    block_info_ptr = blockInfo::Create();
 }
 
 ARQ_processes_Tx_buffers::~ARQ_processes_Tx_buffers()
@@ -190,9 +190,81 @@ void ARQ_processes_Tx_buffers::initial(int _RxID)
     ARQ_num = 0;
     Current_Process_id = -1;
     Transmited_Indicator = -1;
-    block_info.t_packet.time_start = 0;
-    block_info.t_packet.time_end = 0;
-    block_info.t_packet.time_length = 0;
+    block_info_ptr->initial();
 
     RxID = _RxID;
+}
+
+/****************************根据2006 LTE DL存档代码编写****************************/
+
+high_priority_sequence::high_priority_sequence()
+{
+
+}
+
+high_priority_sequence::~high_priority_sequence()
+{
+
+}
+
+high_priority_sequence *high_priority_sequence::Create()
+{
+    high_priority_sequence *high_priority_sequencePtr;
+    high_priority_sequencePtr = new high_priority_sequence();
+    return high_priority_sequencePtr;
+}
+
+void high_priority_sequence::initial(int _RxID)
+{
+    RxID = _RxID;
+    Queue_Head = 0;
+    Queue_Tail = 0;
+}
+
+blockInfo::blockInfo()
+{
+    t_packet_ptr = timeStruct::Create();
+    in_quene_delay_ptr = timeStruct::Create();
+}
+
+blockInfo::~blockInfo()
+{
+
+}
+
+blockInfo *blockInfo::Create()
+{
+    blockInfo *blockInfoPtr;
+    blockInfoPtr = new blockInfo();
+    return blockInfoPtr;
+}
+
+void blockInfo::initial()
+{
+    L2_index = -1;//层2块索引
+    transport_format = -1;//传输格式
+    transport_block_size = -1;// 发送端已经发出但还没有收到"正确确认"的数据包的传输块大小；
+    number_of_transmission = -1; // 元素i表示相应传输块的发送次数
+    t_packet_ptr->initial();
+    in_quene_delay_ptr->initial();
+}
+
+timeStruct::timeStruct() {}
+
+timeStruct::~timeStruct() {
+
+}
+
+timeStruct *timeStruct::Create()
+{
+    timeStruct *timeStructPtr;
+    timeStructPtr = new timeStruct();
+    return timeStructPtr;
+}
+
+void timeStruct::initial()
+{
+    time_end = 0;
+    time_length = 0;
+    time_start = 0;
 }

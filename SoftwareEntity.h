@@ -38,10 +38,9 @@ private:
     int dID;//设备的ID
 //    map<int, TTxBuffer*> mapTTxBuffer; //接收机ID,发送缓存
     map<int, ARQ_processes_Tx_buffers*> map_ARQ_processes_Tx_buffers; //接收机ID,发送缓存
-    map<int, high_priority_sequence> map_high_priority_queue; //接收机ID,各用户发送端缓存重发包的高优先级队列
+    map<int, high_priority_sequence*> map_high_priority_queue; //接收机ID,各用户发送端缓存重发包的高优先级队列
     double dXPoint;
     double dYPoint;
-
 };
 
 ///////////////////////////接收软体类///////////////////////////////
@@ -133,15 +132,7 @@ public:
     UserSoftwareEntityRx softwareRx;
 };
 
-/****************************根据2006 LTE DL存档代码编写****************************/
 
-//系统中每个用户等待重传的高优先级队列
-struct high_priority_sequence
-{
-    block_info block_info_on_queue[HIGH_QUENE_LENGTH];//队列长度为4
-    int Queue_Head;
-    int Queue_Tail;
-};
 
 
 #endif //HETSNETS_SOFTWAREENTITY_H

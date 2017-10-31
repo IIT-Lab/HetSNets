@@ -240,7 +240,13 @@ void SoftwareEntityTx::WorkSlotSoftwareEntity()
         {
             User *_tempUser = dynamic_cast<User *>(_temp.second);
             RxID = _tempUser->iGetID();
+            ARQ_processes_Tx_buffers* ARQ_processes_Tx_buffersPtr = ARQ_processes_Tx_buffers::Create();
+            ARQ_processes_Tx_buffersPtr->initial(RxID);
+            map_ARQ_processes_Tx_buffers.insert(pair<int, ARQ_processes_Tx_buffers*>(RxID, ARQ_processes_Tx_buffersPtr));
 
+            high_priority_sequence* high_priority_sequencePtr = high_priority_sequence::Create();
+            high_priority_sequencePtr->initial(RxID);
+            map_high_priority_queue.insert(pair<int, high_priority_sequence*>(RxID, high_priority_sequencePtr));
 
 //            TTxBuffer* TTxBufferPtr = TTxBuffer::Create();
 //            TTxBufferPtr->initial(RxID);		//初始化发送缓存为空
@@ -274,3 +280,5 @@ void SoftwareEntityTx::InterferenceRgister()
 
 
 }
+
+

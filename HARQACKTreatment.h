@@ -91,10 +91,13 @@ public:
 };
 
 /****************************根据2006 LTE DL存档代码编写****************************/
+class blockInfo;
+class timeStruct;
 
 //发送端ARQ过程缓冲区，5表示每条链路有5个ARQ过程，在本程序中各ARQ过程采用"停等"的机制
 class ARQ_processes_Tx_buffers
 {
+public:
     ARQ_processes_Tx_buffers();
     ~ARQ_processes_Tx_buffers();
     static  ARQ_processes_Tx_buffers * Create();//创建函数
@@ -102,31 +105,59 @@ class ARQ_processes_Tx_buffers
 
     int RxID; //接收机ID
     int ARQ_num;
-    block_info block_info;
+    blockInfo* block_info_ptr;
     int Transmited_Indicator; //元素i表示当前传输块的状态："1"表示已经被发出，正在等待响应；"0"表示等待调度的重传包；"-1"表示buffer为空。
     int Current_Process_id; //当前时刻传输的ARQ process号码【0，4】
 };
 
 //数据块信息的封装格式
-struct block_info
+class blockInfo
 {
+public:
+    blockInfo();
+    virtual ~blockInfo();
+    static  blockInfo * Create();//创建函数
+    void initial();
+
     int L2_index;//层2块索引
     int transport_format;//传输格式
     int transport_block_size;// 发送端已经发出但还没有收到"正确确认"的数据包的传输块大小；
     int number_of_transmission; // 元素i表示相应传输块的发送次数
     //每个数据包的传输时间
-    time_struct t_packet;
-    time_struct in_quene_delay;//进入高优先级队列的延时结构体
+    timeStruct* t_packet_ptr;
+    timeStruct* in_quene_delay_ptr;//进入高优先级队列的延时结构体
 };
 
 //统计时间的结构体
-struct time_struct
+class timeStruct
 {
+public:
+    timeStruct();
+    virtual ~timeStruct();
+    static  timeStruct * Create();//创建函数
+    void initial();
+
     int time_length;//时间长度
     int time_start;//起始时间
     int time_end;//截至时间
 };
 
+/****************************根据2006 LTE DL存档代码编写****************************/
+
+//系统中每个用户等待重传的高优先级队列
+class high_priority_sequence
+{
+public:
+    high_priority_sequence();
+    ~high_priority_sequence();
+    static  high_priority_sequence * Create();//创建函数
+    void initial(int _RxID);
+
+    blockInfo block_info_on_queue[HIGH_QUENE_LENGTH];//队列长度为4
+    int Queue_Head;
+    int Queue_Tail;
+    int RxID; //接收机ID
+};
 
 
 #endif //HETSNETS_HARQACKTREATMENT_H
