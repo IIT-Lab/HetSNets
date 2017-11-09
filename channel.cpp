@@ -217,6 +217,7 @@ void channel::setmLinkLossPtr(vector<map<int, pair<double, double>>> *vecMapLink
     //查询发端的该时隙下干扰登记表，遍历所有的RB块
     for (int iRB = 0; iRB < SUBBNUM; iRB++)
     {
+        int index = 0;
         set<int> txUserList;
         set<int> rxUserList;
         InterferenceIndex::GetInstance().GetRelevantUserTxRB(iRB, SystemDriveBus::iSlot, txUserList);
@@ -227,22 +228,29 @@ void channel::setmLinkLossPtr(vector<map<int, pair<double, double>>> *vecMapLink
 
         for (auto temp : rxUserList)
         {
-            if (temp == RxPtr->iGetID() && txUserList.size() != 0)//如果在某RB上，发射用户存在
+            if (temp == RxPtr->iGetID())
             {
-                for (auto tx : txUserList)
+                if(txUserList.size() != 0)//如果在某RB上，发射用户存在
                 {
-                    linklossPowerTemp.first = mLinkLoss[tx];
-                    linklossPowerTemp.second = mTxPower[tx];
-                    //if (mTxPower.find(txSector) != mTxPower.end())//查找发射机功率表，找到对应的发射功率
-                    //{
-                    //	linklossPowerTemp.second = mTxPower[txSector];
-                    //}
-                    mLinkLossTemp[tx] = linklossPowerTemp;
+                    for (auto tx : txUserList)
+                    {
+                        linklossPowerTemp.first = mLinkLoss[tx];
+                        linklossPowerTemp.second = mTxPower[tx];
+                        //if (mTxPower.find(txSector) != mTxPower.end())//查找发射机功率表，找到对应的发射功率
+                        //{
+                        //	linklossPowerTemp.second = mTxPower[txSector];
+                        //}
+                        mLinkLossTemp[tx] = linklossPowerTemp;
 
+                    }
+                    (*vecMapLinkLossPowerPtr).push_back(mLinkLossTemp);
+                    index++;
                 }
-                (*vecMapLinkLossPowerPtr).push_back(mLinkLossTemp);
             }
-            else//如果在某RB上，发射用户不存在,直接push一个空的map进去
+        }
+        if (!index)
+        {
+            //如果在某RB上，发射用户不存在,直接push一个空的map进去
             {
                 mLinkLossTemp.clear();
                 (*vecMapLinkLossPowerPtr).push_back(mLinkLossTemp);
@@ -255,10 +263,6 @@ void channel::setmLinkLossPtr(vector<map<int, pair<double, double>>> *vecMapLink
 //            {
 //                linklossPowerTemp.first = mLinkLoss[tx];
 //                linklossPowerTemp.second = mTxPower[tx];
-//                //if (mTxPower.find(txSector) != mTxPower.end())//查找发射机功率表，找到对应的发射功率
-//                //{
-//                //	linklossPowerTemp.second = mTxPower[txSector];
-//                //}
 //                mLinkLossTemp[tx] = linklossPowerTemp;
 //
 //            }

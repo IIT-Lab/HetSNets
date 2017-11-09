@@ -106,6 +106,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
     map<int, double> mSINRTempNull;//定义一个空的map，用于无主服务基站或者无发射信号时赋空值
     int RBNo = 0;//用于存储RB块内有SINR值得map，所以把RB号作为键来存储
     thermalNoisePow = -111;//算在10个RB块，即2MHZ带宽上的热噪声，-174dBm/HZ + 10log(2*10^6)
+    thermalNoisePow = pow(10, (thermalNoisePow - 30) / 10);//线性值
 //    thermalNoisePow = -174 + 10 * log10(4000000);//算在20个RB块，即4MHZ带宽上的热噪声，-174dBm/HZ + 10log(4*10^6)
 //    thermalNoisePow = -174 + 10 * log10(18000);//算在1个RB块，即0.18MHZ带宽上的热噪声，-174dBm/HZ + 10log(0.18*10^6)
 
@@ -123,8 +124,8 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
             for (; mapPtr1 != vTemp.end(); mapPtr1++)
             {
                 txPow = mapPtr1->second.second;//dBm
-                txPow = pow(10, (txPow - 30) / 10);
-                channelGain = pow(10, -mapPtr1->second.first / 10);
+                txPow = pow(10, (txPow - 30) / 10);//W
+                channelGain = pow(10, -mapPtr1->second.first / 10);//线性值
                 totalPow += txPow * channelGain;
             }
             auto mapPtr = vTemp.begin();
@@ -140,7 +141,8 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         //把该发射机作为主服务基站，其余的当成干扰，计算当前RB块上的SINR =信号功率/干扰功率+白噪功率，分子分母都是线性值
                         //channelGain = pow(10, -mapPtr1->second.first / 10);
                         txPow = mapPtr->second.second;//dBm
-                        txPow = pow(10, (txPow - 30) / 10);
+                        txPow = pow(10, (txPow - 30) / 10);//W
+                        channelGain = pow(10, -mapPtr->second.first / 10);//线性值
                         signalPow = txPow * channelGain;//算出信号功率
                         if (totalPow == signalPow)
                         {
@@ -148,16 +150,15 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         }
                         else
                         {
-                            interferencePow = 10 * log10(totalPow - signalPow);//算出干扰功率,dB值
-                            interferencePow = pow(10, interferencePow / 10);//线性值
+//                            interferencePow = 10 * log10(totalPow - signalPow);//算出干扰功率,dB值
+//                            interferencePow = pow(10, interferencePow / 10);//线性值
+                            interferencePow = totalPow - signalPow;
                         }
 
-                        thermalNoisePow = pow(10, (thermalNoisePow - 30) / 10);//线性值
+//                        noiseFig = thermalNoisePow * 180000 / 2;//线性值
+//                        SystemDriveBus::systemSenseInterface.setNoisePower(noiseFig);
 
-                        noiseFig = thermalNoisePow * 180000 / 2;//线性值
-                        SystemDriveBus::systemSenseInterface.setNoisePower(noiseFig);
-
-                        sinr = signalPow / (interferencePow + noiseFig); //线性
+                        sinr = signalPow / (interferencePow + thermalNoisePow); //线性
                         sinr = 10 * log10(sinr);//dB值
 
                         //更新系统SINR
