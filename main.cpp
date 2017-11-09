@@ -71,39 +71,40 @@ int main()
         }
     }
 
-    int slot = SystemDriveBus::system_sense.get_numOfSlot();//总时隙数
+//    int slot = SystemDriveBus::system_sense.get_numOfSlot();//总时隙数
+    int slot = 10;
 
     //开始进行时隙循环
     cout << "时隙循环开始" << endl;
     while (SystemDriveBus::iSlot != slot)
     {
-        if (!(SystemDriveBus::iSlot % 1000)) SystemDriveBus::systemSinrComputing.clearSinr(); //1000个时隙统计一次SINR，清空SINR
+//        if (!(SystemDriveBus::iSlot % 1000)) SystemDriveBus::systemSinrComputing.clearSinr(); //1000个时隙统计一次SINR，清空SINR
 
         i += 100;//为了使两次随机数变化更大一点
         std::default_random_engine dre(i); //保证循环每次的随机数引擎的初始值不相同
 
-//        cout << "当前第 " << SystemDriveBus::iSlot << " 个时隙 " << endl;
+        cout << "当前第 " << SystemDriveBus::iSlot << " 个时隙 " << endl;
 
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
             _temp.second->WorkSlot(dre);
         }
 
-        if (sense_test)
-        {
-            SystemDriveBus::systemSenseInterface.SetSenseInterface();
-            if (!(SystemDriveBus::iSlot % 1000)) //1000个时隙统计一次SINR
-            {
-                cout << "SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
-                SystemDriveBus::systemSenseInterface.addSinr(SystemDriveBus::systemSinrComputing.getSinr());
-            }
-            SystemDriveBus::systemSenseInterface.WriteSenseFile(SystemDriveBus::iSlot);
-        }
+//        if (sense_test)
+//        {
+//            SystemDriveBus::systemSenseInterface.SetSenseInterface();
+//            if (!(SystemDriveBus::iSlot % 1000)) //1000个时隙统计一次SINR
+//            {
+//                cout << "SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
+//                SystemDriveBus::systemSenseInterface.addSinr(SystemDriveBus::systemSinrComputing.getSinr());
+//            }
+//            SystemDriveBus::systemSenseInterface.WriteSenseFile(SystemDriveBus::iSlot);
+//        }
 
         SystemDriveBus::iSlot++;
     }
 
-    cout<< "系统平均SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
+//    cout<< "系统平均SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
 
     return 0;
 }

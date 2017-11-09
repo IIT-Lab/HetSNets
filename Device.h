@@ -119,7 +119,9 @@ class User :public Interface
 public:
     User(string _user_type);
     static  Interface * Create(string user_type);//创建函数
-    //void initial(default_random_engine dre);
+    void initial(default_random_engine dre);
+    void JoinSection2TransData();
+    void WorkSlot(default_random_engine dre);
     void Display();//打印函数
     void Out2MatlabFile();//将对象的位置坐标信息输出到.m文件
     double getDXPoint() const;
@@ -136,6 +138,8 @@ public:
 
     int getCellID() const;
 
+    const string &getUser_type() const;
+
     static int countTag;
 
     UserHardwareEntity hardware;
@@ -143,6 +147,7 @@ public:
 
 private:
     string user_type;
+    int txID;
     double dXPoint;
     double dYPoint;
     double relativeXPoint;

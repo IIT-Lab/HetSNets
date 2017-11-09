@@ -81,13 +81,14 @@ vector<map<int, pair<double, double>>>& HardwareEntity::GetLinkloss()
 void MacroHardwareEntity::InitialHardwareEntity()
 {
     //初始化发射功率
-//    txPower = SystemDriveBus::ModeID2Par.at(1).get_power();
+    txPower = SystemDriveBus::ModeID2Par.at(1).get_power();
 //    txPower = 40;//dBm
-    //测试频谱感知
-    txPower = 30 + (SystemDriveBus::iSlot / 1000);//dBm
-    double _txPower = pow(10, (txPower - 30) / 10);
-    SystemDriveBus::systemSenseInterface.addTxPower(_txPower);
-    cout << "功率:" << txPower << "dBm" << endl;
+
+////  测试频谱感知
+//    txPower = 30 + (SystemDriveBus::iSlot / 1000);//dBm
+//    double _txPower = pow(10, (txPower - 30) / 10);
+//    SystemDriveBus::systemSenseInterface.addTxPower(_txPower);
+//    cout << "功率:" << txPower << "dBm" << endl;
 }
 
 ///////////////////////////SmallCell硬体类///////////////////////////////

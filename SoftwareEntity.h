@@ -26,6 +26,7 @@ class SoftwareEntityTx
 public:
     int GetDeviceID();//获取用户的ID
     void ConnectID(int iID);//将用户的id传入对象
+    void ConnectType(string _TxType);//将设备类型传入对象
     void ConnectHardPower(double dPower);//将硬体里的发射功率传入对象
     void ConnectLocation(double dxPoint, double dyPoint);//将坐标传入对象
     void TransmitID2AllRx();//向所有可能的接收机发射自己的坐标信息
@@ -33,10 +34,12 @@ public:
     void WorkSlotSoftwareEntity(); //发射软体的workslot
     void InterferenceRgister();//进行干扰登记
     void ARQ_processes_modify_for_full_buffer(int _RxID);//full buffer业务
+    const string &getTxType() const;
 
 private:
     double dTxPower;
     int dID;//设备的ID
+    string TxType;//发射机的类型
 //    map<int, TTxBuffer*> mapTTxBuffer; //接收机ID,发送缓存
     map<int, ARQ_processes_Tx_buffers*> map_ARQ_processes_Tx_buffers; //接收机ID,发送缓存
     map<int, high_priority_sequence*> map_high_priority_queue; //接收机ID,各用户发送端缓存重发包的高优先级队列

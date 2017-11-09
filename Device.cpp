@@ -64,6 +64,7 @@ void MacroCell::JoinSection2TransData()
     software.softwareTx.ConnectID(iID);//获取D2DUserID
     //software.softwareRx.ConnectID(iID);//获取D2DUserID
     hardware.ConnectID(iID);//获取D2DUserID
+    software.softwareTx.ConnectType(sGetType());
     //software.softwareRx.ConnectHardLinkloss(hardware.GetLinkloss());//接收软体获取硬体里的路损
     software.softwareTx.ConnectHardPower(hardware.txPower);//发射软体获取硬体里的功率
     //hardware.ConnectstartSlot(software.softwareTx.startSlot);//硬体从软体发射类里获取起始发射时间
@@ -346,12 +347,13 @@ void SmallCell::JoinSection2TransData()
     /*完成软件与硬件相关数据的套接*/
 //    UserLocation.ConnectXYPoint(dXPoint, dYPoint);//获取D2DUser坐标
     software.softwareTx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
-    software.softwareRx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
+//    software.softwareRx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
     software.softwareTx.ConnectID(iID);//获取D2DUserID
-    software.softwareRx.ConnectID(iID);//获取D2DUserID
+//    software.softwareRx.ConnectID(iID);//获取D2DUserID
+    software.softwareTx.ConnectType(sGetType());
     hardware.ConnectID(iID);//获取D2DUserID
 //    software.softwareRx.ConnectMode(mode);
-    software.softwareRx.ConnectHardLinkloss(hardware.GetLinkloss());//接收软体获取硬体里的路损
+//    software.softwareRx.ConnectHardLinkloss(hardware.GetLinkloss());//接收软体获取硬体里的路损
     software.softwareTx.ConnectHardPower(hardware.txPower);//发射软体获取硬体里的功率
 //    hardware.ConnectstartSlot(software.softwareTx.startSlot);//硬体从软体发射类里获取起始发射时间
 }
@@ -385,9 +387,9 @@ void SmallCell::WorkSlot(default_random_engine dre)
 {
     //测试频谱感知，SmallCell作为接收用户
     //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
-    hardware.WorkslotHardwareEntityRx();
+    hardware.WorkslotHardwareEntityTx();
     //调用接收软体类的workslot
-    software.softwareRx.WorkSlotSoftwareEntity();
+    software.softwareTx.WorkSlotSoftwareEntity();
 }
 
 double SmallCell::GetXPoint()
@@ -695,6 +697,37 @@ Interface * User::Create(string _user_type)
     return UserPtr;
 }
 
+void User::initial(default_random_engine dre)
+{
+    //依次调硬体的初始化函数，软体的初始化函数
+//    hardware.InitialHardwareEntity();
+    JoinSection2TransData();
+}
+
+void User::JoinSection2TransData()
+{
+    /*完成软件与硬件相关数据的套接*/
+//    UserLocation.ConnectXYPoint(dXPoint, dYPoint);//获取D2DUser坐标
+//    software.softwareTx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
+    software.softwareRx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
+//    software.softwareTx.ConnectID(iID);//获取D2DUserID
+    software.softwareRx.ConnectID(iID);//获取D2DUserID
+//    software.softwareTx.ConnectType(sGetType());
+    hardware.ConnectID(iID);//获取D2DUserID
+//    software.softwareRx.ConnectMode(mode);
+    software.softwareRx.ConnectHardLinkloss(hardware.GetLinkloss());//接收软体获取硬体里的路损
+//    software.softwareTx.ConnectHardPower(hardware.txPower);//发射软体获取硬体里的功率
+//    hardware.ConnectstartSlot(software.softwareTx.startSlot);//硬体从软体发射类里获取起始发射时间
+}
+
+void User::WorkSlot(default_random_engine dre)
+{
+    //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
+    hardware.WorkslotHardwareEntityRx();
+    //调用接收软体类的workslot
+    software.softwareRx.WorkSlotSoftwareEntity();
+}
+
 void User::Display()
 /************************************************************************************************
 函数名称：Display
@@ -767,4 +800,8 @@ int User::getSmallCellID() const {
 
 int User::getCellID() const {
     return cellID;
+}
+
+const string &User::getUser_type() const {
+    return user_type;
 }

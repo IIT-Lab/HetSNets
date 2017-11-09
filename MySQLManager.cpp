@@ -165,7 +165,7 @@ unsigned int MySQLManager::insert(std::string sql)
     if(res >= 0){
         // 返回受影响的行数
         rows = mysql_affected_rows(&mySQLClient);
-        cout << "Inserted "<< rows << " rows\n";
+//        cout << "Inserted "<< rows << " rows\n";
         return rows;
     } else {
         cout << "Insert error " << mysql_errno(&mySQLClient) << "," << mysql_error(&mySQLClient) << endl;

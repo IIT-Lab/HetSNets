@@ -94,25 +94,26 @@ void channel::UpdateAllTxLinkLossTable()
     Interface *receivePtr = SystemDriveBus::ID2Ptr(receiveID);
     Interface *TXPtr = nullptr;
     MacroCell *macroTxPtr = nullptr;
-    SmallCell *smallCellTxPtr = dynamic_cast<SmallCell *>(receivePtr);
+//    SmallCell *smallCellTxPtr = dynamic_cast<SmallCell *>(receivePtr);
+    SmallCell *smallCellTxPtr = nullptr;
     Wifi *wifiTxPtr = nullptr;
     User *userTxPtr = nullptr;
     User *userRxPtr = dynamic_cast<User *>(receivePtr);
 
-    if (this->getReceiveType() == "class SmallCell *")
-    {
-        x1 = smallCellTxPtr->GetXPoint();//目的坐标
-        y1 = smallCellTxPtr->GetYPoint();
-    }
-    else if (this->getReceiveType() == "class User *")
+//    if (this->getReceiveType() == "class SmallCell *")
+//    {
+//        x1 = smallCellTxPtr->GetXPoint();//目的坐标
+//        y1 = smallCellTxPtr->GetYPoint();
+//    }
+    if (this->getReceiveType() == "class User *")
     {
         x1 = userRxPtr->getDXPoint();//目的坐标
         y1 = userRxPtr->getDYPoint();
     }
-    else //出错
-    {
-        cout << "仿真配置错误！" << endl;
-    }
+//    else //出错
+//    {
+//        cout << "仿真配置错误！" << endl;
+//    }
 
     for (auto IDtemp : sTxID)//遍历所有与该接收机有关的发射机
     {//1 begain
@@ -157,7 +158,11 @@ void channel::UpdateAllTxLinkLossTable()
         }
         else if (TxType == "class SmallCell *")
         {
-
+            smallCellTxPtr = dynamic_cast<SmallCell *>(TXPtr);
+            x2 = smallCellTxPtr->GetXPoint();
+            y2 = smallCellTxPtr->GetYPoint();
+            ////UMA场景
+            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
         }
         else if (TxType == "class Wifi *")
         {
@@ -239,6 +244,7 @@ void channel::setmLinkLossPtr(vector<map<int, pair<double, double>>> *vecMapLink
             }
             else//如果在某RB上，发射用户不存在,直接push一个空的map进去
             {
+                mLinkLossTemp.clear();
                 (*vecMapLinkLossPowerPtr).push_back(mLinkLossTemp);
             }
         }

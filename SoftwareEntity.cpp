@@ -34,11 +34,35 @@ void SoftwareEntityRx::SetMainTxInfo()//设置缓存主服务基站的容器
     //由坐标判断发射机距离自己的距离是否在（a,b）范围内，并存储主服务基站
     //先遍历所有可能的发射机信息表
     vecMapMainTxInfo.clear();//每个时隙在使用vecMapMainTxInfo表之前都要将上一个时隙的内容清空，因为该表只跟当前时隙相关
-    int txID;
+    int txID = -1;
     int rxID = this->dID;
     Interface *rxPtr = SystemDriveBus::ID2PtrBus.at(rxID);
-    SmallCell *rxSmallCellPtr = dynamic_cast<SmallCell *>(rxPtr);
-    txID = rxSmallCellPtr->getCellID();
+//    SmallCell *rxSmallCellPtr = dynamic_cast<SmallCell *>(rxPtr);
+    User *rxUserPtr = dynamic_cast<User *>(rxPtr);
+    if (rxUserPtr->getUser_type() == "MacroCell")
+    {
+        int MacroCellID = rxUserPtr->getCellID();
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.second->sGetType() == "class MacroCell *")
+            {
+                MacroCell *MacroCellPtr = dynamic_cast<MacroCell *>(_temp.second);
+                if (MacroCellPtr->GetmacroID() == MacroCellID) txID = MacroCellPtr->iGetID();
+            }
+        }
+    }
+    else if (rxUserPtr->getUser_type() == "SmallCell")
+    {
+        int SmallCellID = rxUserPtr->getSmallCellID();
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.second->sGetType() == "class SmallCell *")
+            {
+                SmallCell *SmallCellPtr = dynamic_cast<SmallCell *>(_temp.second);
+                if (SmallCellPtr->getSmallCellID() == SmallCellID) txID = SmallCellPtr->iGetID();
+            }
+        }
+    }
 
     for (auto vTemp : vecMapTxInfo)
     {
@@ -148,7 +172,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
 
 //                        sinr = signalPow - (interferencePow + thermalNoisePow); //单位dB
 
-                        //cout << "用户[" << this->dID << "]在[" << RBNo << "]号RB上的SINR为：" << sinr << endl;
+                        cout << "用户[" << this->dID << "]在[" << RBNo << "]号RB上的SINR为：" << sinr << endl;
                         mSINRTemp[mapPtr->first] = sinr;//将该主服务基站对应的SINR存起来
                         sinr = pow(10, sinr / 10);//线性值
                         rate+= 180 * log2(1 + sinr);
@@ -213,7 +237,8 @@ void SoftwareEntityTx::TransmitID2AllRx()
     {
         if (_temp.first >= 30 && _temp.first < 40)
         {
-            auto rx = dynamic_cast<SmallCell*>(_temp.second); //测试频谱感知
+//            auto rx = dynamic_cast<SmallCell*>(_temp.second); //测试频谱感知
+            auto rx = dynamic_cast<User*>(_temp.second);
             point.first = this->dXPoint;
             point.second = this->dYPoint;
             rx->software.softwareRx.SetTxInfo(this, point);//调用接收软体类的函数设置发射机坐标信息容器
@@ -233,41 +258,41 @@ void SoftwareEntityTx::Scheduler()
 
 void SoftwareEntityTx::WorkSlotSoftwareEntity()
 {
-    int RxID;
-    for (auto _temp : SystemDriveBus::SlotDriveBus)
-    {
-        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
-        {
-            User *_tempUser = dynamic_cast<User *>(_temp.second);
-            RxID = _tempUser->iGetID();
-            ARQ_processes_Tx_buffers* ARQ_processes_Tx_buffersPtr = ARQ_processes_Tx_buffers::Create();
-            ARQ_processes_Tx_buffersPtr->initial(RxID);
-            map_ARQ_processes_Tx_buffers.insert(pair<int, ARQ_processes_Tx_buffers*>(RxID, ARQ_processes_Tx_buffersPtr));
-
-            high_priority_sequence* high_priority_sequencePtr = high_priority_sequence::Create();
-            high_priority_sequencePtr->initial(RxID);
-            map_high_priority_queue.insert(pair<int, high_priority_sequence*>(RxID, high_priority_sequencePtr));
-
-            map<int, message_arq_ack*> map_message_arq_ack;
-            for (int i = 0; i < 3; i++)
-            {
-                message_arq_ack* message_arq_ackPtr = message_arq_ack::Create();
-                message_arq_ackPtr->initial();
-                map_message_arq_ack.insert(pair<int, message_arq_ack*>(i, message_arq_ackPtr));
-            }
-            uplink_ACK_feedback_queues.insert(pair<int, map<int, message_arq_ack*>>(RxID, map_message_arq_ack));
-        }
-    }
-
-    for (auto _temp : SystemDriveBus::SlotDriveBus)
-    {
-        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
-        {
-            User *_tempUser = dynamic_cast<User *>(_temp.second);
-            RxID = _tempUser->iGetID();
-            ARQ_processes_modify_for_full_buffer(RxID);
-        }
-    }
+//    int RxID;
+//    for (auto _temp : SystemDriveBus::SlotDriveBus)
+//    {
+//        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
+//        {
+//            User *_tempUser = dynamic_cast<User *>(_temp.second);
+//            RxID = _tempUser->iGetID();
+//            ARQ_processes_Tx_buffers* ARQ_processes_Tx_buffersPtr = ARQ_processes_Tx_buffers::Create();
+//            ARQ_processes_Tx_buffersPtr->initial(RxID);
+//            map_ARQ_processes_Tx_buffers.insert(pair<int, ARQ_processes_Tx_buffers*>(RxID, ARQ_processes_Tx_buffersPtr));
+//
+//            high_priority_sequence* high_priority_sequencePtr = high_priority_sequence::Create();
+//            high_priority_sequencePtr->initial(RxID);
+//            map_high_priority_queue.insert(pair<int, high_priority_sequence*>(RxID, high_priority_sequencePtr));
+//
+//            map<int, message_arq_ack*> map_message_arq_ack;
+//            for (int i = 0; i < 3; i++)
+//            {
+//                message_arq_ack* message_arq_ackPtr = message_arq_ack::Create();
+//                message_arq_ackPtr->initial();
+//                map_message_arq_ack.insert(pair<int, message_arq_ack*>(i, message_arq_ackPtr));
+//            }
+//            uplink_ACK_feedback_queues.insert(pair<int, map<int, message_arq_ack*>>(RxID, map_message_arq_ack));
+//        }
+//    }
+//
+//    for (auto _temp : SystemDriveBus::SlotDriveBus)
+//    {
+//        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
+//        {
+//            User *_tempUser = dynamic_cast<User *>(_temp.second);
+//            RxID = _tempUser->iGetID();
+//            ARQ_processes_modify_for_full_buffer(RxID);
+//        }
+//    }
 
     TransmitID2AllRx();	//把该发射机的ID坐标信息发送给每个接收机
     InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
@@ -276,20 +301,71 @@ void SoftwareEntityTx::WorkSlotSoftwareEntity()
 
 void SoftwareEntityTx::InterferenceRgister()
 {
-    //测试频谱感知，20个小蜂窝作为接收用户，分配20个RB
+////    测试频谱感知，20个小蜂窝作为接收用户，分配20个RB
+//    int selectedRB;
+//    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)
+//    {
+//        InterferenceIndex::GetInstance().RFRegisterOneRB(this->GetDeviceID(), SystemDriveBus::iSlot, selectedRB);
+//    }
+//
+//    selectedRB = 0;
+//    for (auto _temp : SystemDriveBus::SlotDriveBus)
+//    {
+//        if (_temp.first >=30)
+//        {
+//            InterferenceIndex::GetInstance().RFRxRegisterOneRB(_temp.second->iGetID(), SystemDriveBus::iSlot, selectedRB);
+//            selectedRB++;
+//        }
+//    }
+
+    ////测试极化频谱共享，分配5个RB
     int selectedRB;
-    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)
+    //如果发射机是宏蜂窝基站，将5个RB都分配给唯一的蜂窝用户
+    if (this->getTxType() == "class MacroCell *")
     {
-        InterferenceIndex::GetInstance().RFRegisterOneRB(this->GetDeviceID(), SystemDriveBus::iSlot, selectedRB);
+        //登记发射机占用RB
+        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)
+        {
+            InterferenceIndex::GetInstance().RFRegisterOneRB(this->GetDeviceID(), SystemDriveBus::iSlot, selectedRB);
+        }
+        //登记接收机占用RB
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.first >=30)
+            {
+                User *_tempUser = dynamic_cast<User *>(_temp.second);
+                if (_tempUser->getUser_type() == "MacroCell")
+                {
+                    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)
+                    {
+                        InterferenceIndex::GetInstance().RFRxRegisterOneRB(_tempUser->iGetID(), SystemDriveBus::iSlot, selectedRB);
+                    }
+                }
+            }
+        }
     }
 
-    selectedRB = 0;
-    for (auto _temp : SystemDriveBus::SlotDriveBus)
+    //如果发射机是小蜂窝基站，每个小蜂窝用户分配1个RB
+    if (this->getTxType() == "class SmallCell *")
     {
-        if (_temp.first >=30)
+        //登记发射机占用RB
+        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)
         {
-            InterferenceIndex::GetInstance().RFRxRegisterOneRB(_temp.second->iGetID(), SystemDriveBus::iSlot, selectedRB);
-            selectedRB++;
+            InterferenceIndex::GetInstance().RFRegisterOneRB(this->GetDeviceID(), SystemDriveBus::iSlot, selectedRB);
+        }
+        //登记接收机占用RB
+        selectedRB = 0;
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.first >=30)
+            {
+                User *_tempUser = dynamic_cast<User *>(_temp.second);
+                if (_tempUser->getUser_type() == "SmallCell")
+                {
+                    InterferenceIndex::GetInstance().RFRxRegisterOneRB(_temp.second->iGetID(), SystemDriveBus::iSlot, selectedRB);
+                    selectedRB++;
+                }
+            }
         }
     }
 }
@@ -313,7 +389,7 @@ void SoftwareEntityTx::ARQ_processes_modify_for_full_buffer(int _RxID)
         //为0，没有接收得到相应用户的ACK信息，不作处理
         case 0:
 //            break;
-            //为”-1”，说明该用户数据没有被正确接收，需要重传；
+            //为”-1”，说明该用户数据没有被正确接收，需要重传；git git
         case -1:
             //判断重传次数，如果超过重传次数则丢弃该包
             if (number_of_transmission == NUM_OF_RETRANSMISSION)
@@ -329,5 +405,13 @@ void SoftwareEntityTx::ARQ_processes_modify_for_full_buffer(int _RxID)
                 map_high_priority_queue.at(RxID)->map_block_info_on_queue.insert(pair<int, blockInfo*>(Queue_Tail, blockInfoPtr));
             }
     }
+}
+
+void SoftwareEntityTx::ConnectType(string _TxType) {
+    TxType = _TxType;
+}
+
+const string &SoftwareEntityTx::getTxType() const {
+    return TxType;
 }
 

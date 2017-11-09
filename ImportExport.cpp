@@ -343,7 +343,7 @@ void ImportExport::PushSceneToMySQL()
                                            "VALUES(" + iID + "," + UserID + "," + dXPoint + "," + dYPoint + "," + relativedXPoint + "," + relativedYPoint + "," + cellID + "," + SmallCellID + ")";
                 if (mysql->insert(SQLString))
                 {
-                    cout << "插入成功" << endl;
+//                    cout << "插入成功" << endl;
                 }
                 else cout << "执行失败" << endl;
             }
