@@ -196,7 +196,7 @@ void MySQLManager::clearResultList()
 
 string intToString(int _number)
 {
-    strstream ss;
+    stringstream ss;
     string s;
     ss << _number;
     ss >> s;
@@ -205,7 +205,7 @@ string intToString(int _number)
 
 string doubleToString(double _number)
 {
-    strstream ss;
+    stringstream ss;
     string s;
     ss << _number;
     ss >> s;
