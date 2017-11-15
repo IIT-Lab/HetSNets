@@ -85,7 +85,7 @@ void MacroCell::Display()
 
 void MacroCell::Out2MatlabFile()
 {
-    ImportExport::fout << "h1 = scatter(" << dXPoint << "," << dYPoint << ",'Marker','^','LineWidth',1,'MarkerEdgeColor',[0 0 0]/255,'MarkerFaceColor',[0 0 0]/255);" << endl;//打印Macro基站的坐标
+    ImportExport::fout << "h1 = scatter(" << dXPoint << "," << dYPoint << ",200,'Marker','^','LineWidth',1,'MarkerEdgeColor',[0 0 0]/255,'MarkerFaceColor',[0 0 0]/255);" << endl;//打印Macro基站的坐标
     ImportExport::fout << "hold on;" << endl;
 
     if (SystemDriveBus::system_shape.get_shape() == "cell")
@@ -745,12 +745,12 @@ void User::Out2MatlabFile()
 {
     if (user_type == "MacroCell")
     {
-        ImportExport::fout << "h4 = scatter(" << dXPoint << "," << dYPoint << ",'.', 'CData', [0 0 0] / 255);" << endl;
+        ImportExport::fout << "h3 = scatter(" << dXPoint << "," << dYPoint << ",'o', 'CData', [0 0 0] / 255);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
     if (user_type == "SmallCell")
     {
-        ImportExport::fout << "h4 = scatter(" << dXPoint << "," << dYPoint << ",'.', 'CData', [0 0 255] / 255);" << endl;
+        ImportExport::fout << "h4 = scatter(" << dXPoint << "," << dYPoint << ",'x', 'CData', [0 0 255] / 255);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
     if (user_type == "Wifi")

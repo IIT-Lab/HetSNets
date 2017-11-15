@@ -241,10 +241,14 @@ void ImportExport::SetScene()
         ImportExport::fout << "set(p, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
-    ImportExport::fout << "axis equal" << endl;
-    ImportExport::fout << "title('基站和用户位置分布图');" << endl;
+    ImportExport::fout << "axis tight;" << endl;
+    ImportExport::fout << "axis equal;" << endl;
+    ImportExport::fout << "box on;" << endl;
+
+//    ImportExport::fout << "title('基站和用户位置分布图');" << endl;
     //ImportExport::fout << "legend([h1, h2, h3, h4], 'Macro基站', 'SmallCell基站', 'Wifi基站', '用户');" << endl;
-    ImportExport::fout << "legend([h1, h2], 'Macro基站', 'SmallCell基站');" << endl;
+    ImportExport::fout << "h = legend([h1, h2, h3, h4], 'MBS', 'SBS', 'MUEs', 'SUEs');" << endl;
+    ImportExport::fout << "set(h,'Fontname','Times New Roman','Fontsize',20);" << endl;
 
     ImportExport::fout.close();
 }
