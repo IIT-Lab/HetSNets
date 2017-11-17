@@ -31,6 +31,8 @@ public:
     double GetChannelGain(int txID);
     const string &getReceiveType() const;
 
+    const set<int> &getSTxID() const;
+
     static int countTag;
 private:
     struct double2 { double x; double y; };//假的double2，使用的时候会换成CUDA自带的double2，用于存储复数

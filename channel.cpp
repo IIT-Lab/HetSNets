@@ -295,6 +295,10 @@ const string &channel::getReceiveType() const {
     return receiveType;
 }
 
+const set<int> &channel::getSTxID() const {
+    return sTxID;
+}
+
 int mobileList::getLOSSelect() const {
     return LOSSelect;
 }

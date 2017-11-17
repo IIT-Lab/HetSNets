@@ -4,6 +4,10 @@
 #include "SoftwareEntity.h"
 #include "SystemDriveBus.h"
 #include "InterferenceIndex.h"
+#include "psshn_platform/rtwtypes.h"
+#include <Eigen/Dense>
+
+using namespace Eigen;
 
 ///////////////////////////接收软体类///////////////////////////////
 
@@ -100,6 +104,32 @@ void SoftwareEntityRx::ConnectHardLinkloss(vector<map<int, pair<double, double>>
 
 void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，判断包是否正确接收
 {
+    Vector2d _P_mue;
+    Vector2cd _P_cbs_data;
+    Vector2cd _P_cue;
+    Matrix2cd _H_mbscue;
+    Matrix2cd _H_cbscue;
+    Matrix2cd _H_cbsmue;
+
+
+    _P_mue << P_mue[0], P_mue[1];
+//    cout << _P_mue << endl;
+
+    _P_cbs_data << (P_cbs_data[0].re, P_cbs_data[0].im), (P_cbs_data[1].re, P_cbs_data[1].im);
+//    cout << _P_cbs_data << endl;
+
+    _P_cue << (P_cue[0].re, P_cue[0].im), (P_cue[1].re, P_cue[1].im);
+//    cout << _P_cue << endl;
+
+    _H_mbscue << (H_mbscue[0].re, H_mbscue[0].im), (H_mbscue[1].re, H_mbscue[1].im),
+            (H_mbscue[2].re, H_mbscue[2].im), (H_mbscue[3].re, H_mbscue[3].im);
+
+    _H_cbscue << (H_cbscue[0].re, H_cbscue[0].im), (H_cbscue[1].re, H_cbscue[1].im),
+            (H_cbscue[2].re, H_cbscue[2].im), (H_cbscue[3].re, H_cbscue[3].im);
+
+    _H_cbsmue << (H_cbscue[0].re, H_cbscue[0].im), (H_cbscue[1].re, H_cbscue[1].im),
+            (H_cbscue[2].re, H_cbscue[2].im), (H_cbscue[3].re, H_cbscue[3].im);
+
     //查找TLinklossVecMap表，取出每个RB块上的所有发射用户，去遍历vecMapMainTxInfo主服务基站容器
     doubleMapSINR.clear();//每个时隙在使用SINR表之前都要将上一个时隙的内容清空，因为该表只跟当前时隙相关
     double txPow, sinr, noiseFig, thermalNoisePow, signalPow, channelGain = 0, interferencePow = 0,rate = 0;
@@ -196,6 +226,79 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
             //cout << RBNo << "号RB下发射用户不存在" << endl;
             //vecMapSINR.push_back(mSINRTempNull);
         }
+
+/*****************************************************极化测试*****************************************************/
+        if (vTemp.size() != 0 && vecMapMainTxInfo.size() != 0)//如果map中有值，即当前RB下有发射用户存在
+        {//if1 begin
+            //先算出每个RB上总的信号+干扰功率
+            double totalPow = 0;
+            bool haveMainTx = false;//若该RB上虽然有发射信号，但没有一个是有用的主服务基站信号，则将vecMapSINR内层的map置为空，false--无主服务基站
+            auto mapPtr1 = vTemp.begin();
+            for (; mapPtr1 != vTemp.end(); mapPtr1++)
+            {
+                txPow = mapPtr1->second.second;//dBm
+                txPow = pow(10, (txPow - 30) / 10);//W
+                channelGain = pow(10, -mapPtr1->second.first / 10);//线性值
+                totalPow += txPow * channelGain;
+            }
+            auto mapPtr = vTemp.begin();
+            for (; mapPtr != vTemp.end(); mapPtr++)
+            {
+                //查找主服务基站表，看当前RB块的发射用户上是否有主服务基站，若没有，则SINR置为0
+                for (auto txTemp : vecMapMainTxInfo)
+                {
+                    auto txPtr = txTemp.begin();
+                    if (txPtr->first == mapPtr->first)//当前RB上存在主服务基站
+                    {
+                        haveMainTx = true;//将是否有主服务基站标记为真
+                        //把该发射机作为主服务基站，其余的当成干扰，计算当前RB块上的SINR =信号功率/干扰功率+白噪功率，分子分母都是线性值
+                        //channelGain = pow(10, -mapPtr1->second.first / 10);
+                        txPow = mapPtr->second.second;//dBm
+                        txPow = pow(10, (txPow - 30) / 10);//W
+                        channelGain = pow(10, -mapPtr->second.first / 10);//线性值
+                        signalPow = txPow * channelGain;//算出信号功率
+                        complex<double> comSignalPow  = txPow * channelGain * _P_cue.transpose() * _H_cbscue * _P_cbs_data;//算出信号功率
+                        if (comSignalPow.real() == 0) //蜂窝用户
+                        {
+                            if (totalPow == signalPow)
+                            {
+                                interferencePow = 0;
+                            }
+                            else
+                            {
+                                interferencePow = totalPow - signalPow;
+                            }
+                        }
+                        else
+                        {
+                            complex<double> comInterferencePow = txPow * channelGain * _P_cue.transpose() * _H_mbscue * _P_mue;
+                            signalPow = fabs(comSignalPow.real());
+                            interferencePow = fabs(comInterferencePow.real());
+                        }
+
+                        sinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                        sinr = 10 * log10(sinr);//dB值
+                        cout << "用户[" << this->dID << "]在[" << RBNo << "]号RB上的SINR为：" << sinr << endl;
+                    }
+                }
+            }
+            if (!haveMainTx)//即该RB上有信号，但是无主服务信号,则直接将vecMapSINR内层的map置为空
+            {
+                cout << RBNo << "号RB上有信号，但是无主服务信号" << endl;
+            }
+            else
+            {
+                doubleMapSINR[RBNo] = mSINRTemp;
+            }
+
+        }//if1 end
+        else//如果map中没有值，即当前RB下发射用户不存在，则直接将vecMapSINR内层的map置为空
+        {
+            //cout << RBNo << "号RB下发射用户不存在" << endl;
+            //vecMapSINR.push_back(mSINRTempNull);
+        }
+/*****************************************************极化测试*****************************************************/
+
         RBNo++;
     }//RB end
 }
@@ -332,7 +435,7 @@ void SoftwareEntityTx::InterferenceRgister()
         //登记接收机占用RB
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
-            if (_temp.first >=30)
+            if (_temp.first >=30 && _temp.first < 40)
             {
                 User *_tempUser = dynamic_cast<User *>(_temp.second);
                 if (_tempUser->getUser_type() == "MacroCell")
@@ -358,7 +461,7 @@ void SoftwareEntityTx::InterferenceRgister()
         selectedRB = 0;
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
-            if (_temp.first >=30)
+            if (_temp.first >=30 && _temp.first < 40)
             {
                 User *_tempUser = dynamic_cast<User *>(_temp.second);
                 if (_tempUser->getUser_type() == "SmallCell")

@@ -8,6 +8,8 @@
 #include "Interface.h"
 #include "HardwareEntity.h"
 #include "SoftwareEntity.h"
+#include "ControlCenter.h"
+#include "psshn_platform/psshn_platform.h"
 
 struct deviceLocation
 {
@@ -21,6 +23,9 @@ class MacroCell : public Interface
 {
 public:
     MacroCell();
+
+    virtual ~MacroCell();
+
     static Interface * Create();
     void initial(default_random_engine dre);
     void Display();//打印函数
@@ -39,6 +44,9 @@ public:
 
     MacroHardwareEntity hardware;
     MacroSoftwareEntity software;
+
+    double P_mue[2]; //宏蜂窝发射极化状态
+
 private:
     double dXPoint;
     double dYPoint;
@@ -78,6 +86,9 @@ public:
 
     SmallCellHardwareEntity hardware;
     SmallCellSoftwareEntity software;
+
+    creal_T P_cbs_data[2]; //小蜂窝发射极化状态
+
 private:
     double dXPoint;
     double dYPoint;

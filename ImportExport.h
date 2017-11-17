@@ -21,6 +21,7 @@ public:
     static ImportExport& GetInstance();
     void GenerateFileName();
     void GenerateSenseFile();
+    void GenerateChannelGainFile();
     void system_config();
     void SetScene();
     void PushSceneToMySQL();

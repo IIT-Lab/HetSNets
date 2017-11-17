@@ -4,6 +4,7 @@
 #include "ImportExport.h"
 #include "Device.h"
 #include "SystemDriveBus.h"
+#include "ControlCenter.h"
 //#include <iostream>
 #include <sstream>
 #include <sys/stat.h>
@@ -132,6 +133,44 @@ void ImportExport::GenerateSenseFile()
     fout.open(sRelativeFileName);                                                               //打开文件，若不存在则新建一个
 }
 
+void ImportExport::GenerateChannelGainFile()
+/************************************************************************************************
+函数名称：GenerateChannelGainFile
+主要功能：根据系统时间生成频谱感知matlab文件名
+输入参数：
+输出参数：
+其他信息：
+*************************************************************************************************/
+{
+    const time_t t = time(NULL);
+    struct tm current_time;
+    localtime_r(&t, &current_time);
+
+    string temp;
+    int2string(current_time.tm_year + 1900, temp);
+    string t1 = temp;
+    string stra;
+    stra = stra + t1;
+    int2string(current_time.tm_mon + 1, temp);
+    t1 = temp;
+    stra = stra + t1;
+    int2string(current_time.tm_mday, temp);
+    t1 = temp;
+    stra = stra + t1;
+    int2string(current_time.tm_hour, temp);
+    t1 = temp;
+    stra = stra + t1;
+    int2string(current_time.tm_min, temp);
+    t1 = temp;
+    stra = stra + t1;
+    int2string(current_time.tm_sec, temp);
+    t1 = temp;
+    stra = stra + t1;                                                                          //读取系统时间，并拼接成字符串
+
+    string sRelativeFileName = "HetSnets_matlab/ChannelGain" + stra + ".m";                                         //把.m文件命名成带系统时间的，方便存储每次运行的结果
+    fout.open(sRelativeFileName);                                                               //打开文件，若不存在则新建一个
+}
+
 void ImportExport::SetScene()
 /************************************************************************************************
 函数名称：SetScene
@@ -223,6 +262,10 @@ void ImportExport::SetScene()
             }
         }
     }
+
+    //极化状态控制中心
+    _InterfaceTemp = ControCenter::Create();
+    SetPtr2Bus(_InterfaceTemp);
 
     PushSceneToMySQL(); //将总线上的对象信息存入数据库
 

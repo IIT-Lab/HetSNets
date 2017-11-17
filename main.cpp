@@ -57,6 +57,7 @@ int main()
         SystemDriveBus::systemSenseInterface = tempSenseInterface;
     }
 
+    system.GenerateChannelGainFile();//创建存储信道增益的matlab文件
 
     //初始化用户的响应统计量
     for (auto _temp : SystemDriveBus::SlotDriveBus)
@@ -72,7 +73,7 @@ int main()
     }
 
 //    int slot = SystemDriveBus::system_sense.get_numOfSlot();//总时隙数
-    int slot = 10;
+    int slot = 1;
 
     //开始进行时隙循环
     cout << "时隙循环开始" << endl;
@@ -100,6 +101,30 @@ int main()
 //            }
 //            SystemDriveBus::systemSenseInterface.WriteSenseFile(SystemDriveBus::iSlot);
 //        }
+
+        if (1)
+        {
+            set<int> sTxID;
+            int rxID;
+            double ChannelGain;
+            ImportExport::fout << "H = [" << endl;
+            for (auto _temp : SystemDriveBus::SlotDriveBus)
+            {
+                if (_temp.second->sGetType() == "class channel *")
+                {
+                    channel *_tempChannel = dynamic_cast<channel *>(_temp.second);
+                    sTxID = _tempChannel->getSTxID();
+                    rxID = _tempChannel->GetRxID();
+                    for (auto txID : sTxID)
+                    {
+                        ChannelGain = _tempChannel->GetChannelGain(txID);
+                        ImportExport::fout << ChannelGain << ",";
+                    }
+                    ImportExport::fout << ";" << endl;
+                }
+            }
+            ImportExport::fout << "];" << endl;
+        }
 
         SystemDriveBus::iSlot++;
     }

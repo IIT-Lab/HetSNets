@@ -9,6 +9,8 @@
 #include <queue>
 #include "Traffic.h"
 #include "HARQACKTreatment.h"
+#include "ControlCenter.h"
+#include "psshn_platform/psshn_platform.h"
 
 using namespace std;
 
@@ -63,6 +65,13 @@ public:
     void Sinr2Bler();//查询SINR-BLER曲线，得出每个SINR对应的BLER，随机出一个数，判断数据包是否正确接收
     void SinrComputing();//SINR计算，包含导入BLER曲线，判断包是否正确接收
     void SetTxInfo(SoftwareEntityTx *softTx, pair<double, double>_point);//设置缓存所有可能的发射机信息容器
+
+    double P_mue[2]; //宏蜂窝发射极化状态
+    creal_T P_cbs_data[2]; //小蜂窝发射极化状态
+    creal_T P_cue[2]; //小蜂窝用户极化状态
+    creal_T H_mbscue[4];
+    creal_T H_cbscue[4];
+    creal_T H_cbsmue[4];
 
 private:
     int dID;//用户的ID

@@ -234,6 +234,10 @@ int MacroCell::GetmacroID() {
     return macroID;
 }
 
+MacroCell::~MacroCell() {
+
+}
+
 ///////////////////////////SmallCell类///////////////////////////////
 
 SmallCell::SmallCell()
@@ -805,3 +809,4 @@ int User::getCellID() const {
 const string &User::getUser_type() const {
     return user_type;
 }
+
