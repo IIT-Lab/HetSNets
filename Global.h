@@ -20,6 +20,9 @@
 #define HIGH_QUENE_LENGTH 4+HIGH_QUENE_DELAY//高优先级队列的长度
 #define NUM_OF_RETRANSMISSION 6 //数据的最大重传次数
 
+#define SHADOW_CORREATION 0.5 //阴影相关系数
+#define STD_DEVIATION   6  //阴影衰落的均方差 dB
+
 
 
 #endif //HETSNETS_GLOBAL_H
