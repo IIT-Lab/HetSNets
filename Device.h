@@ -153,12 +153,14 @@ public:
 
     static int countTag;
 
+    int getMainTxID() const;
+
     UserHardwareEntity hardware;
     UserSoftwareEntity software;
 
 private:
     string user_type;
-    int txID;
+    int mainTxID;
     double dXPoint;
     double dYPoint;
     double relativeXPoint;

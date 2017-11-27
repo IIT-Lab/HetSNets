@@ -76,7 +76,7 @@ void channel::UpdateAllTxLinkLossTable()
     double angle3dB = 65;
     double maxAttenuation = 20;
     double angleX, angleY;
-    double STDDeviation = 0;
+    double STDDeviation = 1;
     double linkLoss, channelGain, shadowFading = 0;
     double x1 = 0;
     double y1 = 0;
@@ -128,7 +128,7 @@ void channel::UpdateAllTxLinkLossTable()
             x2 = macroTxPtr->GetXPoint();
             y2 = macroTxPtr->GetYPoint();
             ////UMA场景，非视距
-            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
+            pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
 
             angleX = x1 - x2;
             angleY = y1 - y2;
@@ -162,7 +162,7 @@ void channel::UpdateAllTxLinkLossTable()
             x2 = smallCellTxPtr->GetXPoint();
             y2 = smallCellTxPtr->GetYPoint();
             ////UMI场景，非视距
-            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
+            pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
         }
         else if (TxType == "class Wifi *")
         {
@@ -188,7 +188,7 @@ void channel::UpdateAllTxLinkLossTable()
         //没有涉及相关距离的阴影衰落
         std::default_random_engine generator(i);
         //std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
-        std::lognormal_distribution<double> Lognormal(0.0, STD_DEVIATION);
+        std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
         shadowFading = dB::Linear2dB(Lognormal(generator));
         i = i + 100;
 
@@ -196,8 +196,8 @@ void channel::UpdateAllTxLinkLossTable()
 //        double temp_double = STD_DEVIATION * randn();
 //        shadowFading = sqrt(SHADOW_CORREATION) * (temp_double + STD_DEVIATION * randn());
 
-//        shadowFading = 0;
-//        antennaGain = 0;
+        shadowFading = 0;
+        antennaGain = 0;
 
         linkLoss = pathLoss + shadowFading + antennaGain;
         mLinkLoss[IDtemp] = linkLoss;

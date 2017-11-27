@@ -267,10 +267,28 @@ SmallCell::SmallCell()
     }
     else if (SystemDriveBus::system_shape.get_shape() == "circle")
     {
-        double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
-        double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius() - SmallCellRadius);
-        dXPoint = temp_radius * sin(temp_angle);
-        dYPoint = temp_radius * cos(temp_angle);
+        part1:
+        double M2SRadius = 0;//相对宏基站的半径
+        double S2SRadius = 0;//相对小基站的半径
+        while (M2SRadius < 100)
+        {
+            double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
+            M2SRadius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius() - SmallCellRadius);
+            dXPoint = M2SRadius * sin(temp_angle);
+            dYPoint = M2SRadius * cos(temp_angle);
+        }
+
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.second->sGetType() == "class SmallCell *" && this->iID != _temp.second->iGetID())
+            {
+                SmallCell *tempSmallCellPtr = dynamic_cast<SmallCell*>(_temp.second);
+                double tempXPoint = tempSmallCellPtr->GetXPoint();
+                double tempYPoint = tempSmallCellPtr->GetYPoint();
+                S2SRadius = getDistance(dXPoint, dYPoint, tempXPoint, tempYPoint);
+                if (S2SRadius < 100) goto part1;
+            }
+        }
     }
     else //蜂窝形仿真区域
     {
@@ -561,17 +579,27 @@ User::User(string _user_type)
 其他信息：
 *************************************************************************************************/
 {
+    //读取LTE（MacroCell）系统参数
+    mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
+    int Macro_user_num = Macro_mode_par.get_numOfRx();
+    int cell_num = Macro_mode_par.get_numOfTx();
+
+    //读取Small Cell）系统参数
+    mode_par SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
+    int SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+
     iID = SystemDriveBus::GetCountDevice();
     iPriority = 30;
     UserID = SystemDriveBus::GetCountUser();
     sType = "class User *";
     user_type = _user_type;
+    mainTxID = -1;
     if (user_type == "MacroCell")
     {
+        part1:
+        double U2SRadius = 0; //用户到小蜂窝基站的距离
         double x, y, tempx, tempy;
         int randCell;
-        mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
-        int cell_num = Macro_mode_par.get_numOfTx();
         double cell_radius = Macro_mode_par.get_radius();
         double inter_side_distance = cell_radius * sqrt(3);
 
@@ -605,6 +633,20 @@ User::User(string _user_type)
         cellID = randCell;
         dXPoint = SystemDriveBus::cellPosition.at(cellID).dXPoint + relativeXPoint;
         dYPoint = SystemDriveBus::cellPosition.at(cellID).dYPoint + relativeYPoint;
+
+        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        {
+            if (_temp.second->sGetType() == "class SmallCell *" && this->iID != _temp.second->iGetID())
+            {
+                SmallCell *tempSmallCellPtr = dynamic_cast<SmallCell*>(_temp.second);
+                double tempXPoint = tempSmallCellPtr->GetXPoint();
+                double tempYPoint = tempSmallCellPtr->GetYPoint();
+                U2SRadius = getDistance(dXPoint, dYPoint, tempXPoint, tempYPoint);
+                if (U2SRadius < 50) goto part1;
+            }
+        }
+
+        mainTxID = cellID;
     }
     if (user_type == "SmallCell")
     {
@@ -613,10 +655,13 @@ User::User(string _user_type)
         relativeXPoint = temp_radius * sin(temp_angle);
         relativeYPoint = temp_radius * cos(temp_angle);
         int SmallCell_num = SystemDriveBus::ModeID2Par.at(2).get_numOfTx();
-        int randSmallCell = (int) (((double) rand() / RAND_MAX) * SmallCell_num);
+//        int randSmallCell = (int) (((double) rand() / RAND_MAX) * SmallCell_num);
+        int randSmallCell = (iID - cell_num - SmallCell_num - Macro_user_num) / (SmallCell_user_num / SmallCell_num);
         SmallCellID = randSmallCell;
         dXPoint = SystemDriveBus::SmallCellPosition.at(SmallCellID).dXPoint + relativeXPoint;
         dYPoint = SystemDriveBus::SmallCellPosition.at(SmallCellID).dYPoint + relativeYPoint;
+
+        mainTxID = cell_num + SmallCellID;
     }
     if (user_type == "Wifi")
     {
@@ -808,5 +853,9 @@ int User::getCellID() const {
 
 const string &User::getUser_type() const {
     return user_type;
+}
+
+int User::getMainTxID() const {
+    return mainTxID;
 }
 

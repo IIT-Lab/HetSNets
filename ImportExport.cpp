@@ -185,44 +185,34 @@ void ImportExport::SetScene()
     GenerateFileName();
     Interface* _InterfaceTemp;
 
+    //读取LTE（MacroCell）系统参数
+    mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
+    int Macro_num = Macro_mode_par.get_numOfTx();
+    double Macro_radius = Macro_mode_par.get_radius();
+    int Macro_user_num = Macro_mode_par.get_numOfRx();
+
+    //读取Small Cell）系统参数
+    mode_par SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
+    int SmallCell_num = SmallCell_mode_par.get_numOfTx();
+    int SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+
     for (auto temp_mode_par : SystemDriveBus::ModeID2Par)
     {
         if (temp_mode_par.first == 1)//LTE
         {
-            //读取LTE（MacroCell）系统参数
-            mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
-            int Macro_num = Macro_mode_par.get_numOfTx();
-            double Macro_radius = Macro_mode_par.get_radius();
-            int Macro_user_num = Macro_mode_par.get_numOfRx();
-            MacroCell::CellularSysInit(Macro_num, Macro_radius);
 
+            MacroCell::CellularSysInit(Macro_num, Macro_radius);
             for (int i = 0; i < Macro_num; i++)//创建宏蜂窝小区对象
             {
                 _InterfaceTemp = MacroCell::Create();
                 SetPtr2Bus(_InterfaceTemp);
             }
-
-            for (int i = 0; i < Macro_user_num; i++)
-            {
-                _InterfaceTemp = User::Create("MacroCell");
-                SetPtr2Bus(_InterfaceTemp);
-            }
         }
         if (temp_mode_par.first == 2)//SmallCell
         {
-            mode_par SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
-            int SmallCell_num = SmallCell_mode_par.get_numOfTx();
-            int SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
-
             for (int i = 0; i < SmallCell_num; i++)
             {
                 _InterfaceTemp = SmallCell::Create();
-                SetPtr2Bus(_InterfaceTemp);
-            }
-
-            for (int j = 0; j < SmallCell_user_num; ++j)
-            {
-                _InterfaceTemp = User::Create("SmallCell");
                 SetPtr2Bus(_InterfaceTemp);
             }
         }
@@ -263,9 +253,22 @@ void ImportExport::SetScene()
         }
     }
 
+    for (int i = 0; i < Macro_user_num; i++)
+    {
+        _InterfaceTemp = User::Create("MacroCell");
+        SetPtr2Bus(_InterfaceTemp);
+    }
+
+    for (int j = 0; j < SmallCell_user_num; ++j)
+    {
+        _InterfaceTemp = User::Create("SmallCell");
+        SetPtr2Bus(_InterfaceTemp);
+    }
+
     //极化状态控制中心
-    _InterfaceTemp = ControCenter::Create();
-    SetPtr2Bus(_InterfaceTemp);
+//    _InterfaceTemp = ControCenter::Create();
+//    SetPtr2Bus(_InterfaceTemp);
+
 
     PushSceneToMySQL(); //将总线上的对象信息存入数据库
 

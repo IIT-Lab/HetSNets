@@ -107,7 +107,22 @@ int main()
             set<int> sTxID;
             int rxID;
             double ChannelGain;
-            ImportExport::fout << "H = [" << endl;
+
+            ImportExport::fout << "%用户ID与服务基站ID映射表，行号为用户ID，其中用户ID 1-5 为蜂窝用户，对应数值是基站ID" << endl;
+            ImportExport::fout << "UserID2BSID = [" << endl;
+            for (auto _temp : SystemDriveBus::SlotDriveBus)
+            {
+                if (_temp.second->sGetType() == "class User *")
+                {
+                    User *_tempUser = dynamic_cast<User *>(_temp.second);
+                    int MainTxID = _tempUser ->getMainTxID() + 1; //+1是因为matlab中的矩阵序号是从1开始
+                    ImportExport::fout << MainTxID << ";" << endl;
+                }
+            }
+            ImportExport::fout << "];" << endl;
+
+            ImportExport::fout << "%信道增益矩阵，行号为用户ID，列号为基站ID，其中用户ID 1-5 为蜂窝用户，基站 ID = 1 是宏基站" << endl;
+            ImportExport::fout << "channelGain = [" << endl;
             for (auto _temp : SystemDriveBus::SlotDriveBus)
             {
                 if (_temp.second->sGetType() == "class channel *")
