@@ -9,12 +9,15 @@ using namespace std;
 
 //总线声明
 int SystemDriveBus::iSlot;
+string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 sinrComputing SystemDriveBus::systemSinrComputing;
 SenseInterface SystemDriveBus::systemSenseInterface;
 map<int, statistic_variable*> SystemDriveBus::ID2UserVariable;
 
 int main()
 {
+    SystemDriveBus::ULorDL = "UL"; //上行链路
+
     //实例化一个系统对象
     ImportExport system = ImportExport::GetInstance();
 
@@ -89,56 +92,6 @@ int main()
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
             _temp.second->WorkSlot(dre);
-        }
-
-//        if (sense_test)
-//        {
-//            SystemDriveBus::systemSenseInterface.SetSenseInterface();
-//            if (!(SystemDriveBus::iSlot % 1000)) //1000个时隙统计一次SINR
-//            {
-//                cout << "SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
-//                SystemDriveBus::systemSenseInterface.addSinr(SystemDriveBus::systemSinrComputing.getSinr());
-//            }
-//            SystemDriveBus::systemSenseInterface.WriteSenseFile(SystemDriveBus::iSlot);
-//        }
-
-        if (1)
-        {
-            set<int> sTxID;
-            int rxID;
-            double ChannelGain;
-
-            ImportExport::fout << "%用户ID与服务基站ID映射表，行号为用户ID，其中用户ID 1-5 为蜂窝用户，对应数值是基站ID" << endl;
-            ImportExport::fout << "UserID2BSID = [" << endl;
-            for (auto _temp : SystemDriveBus::SlotDriveBus)
-            {
-                if (_temp.second->sGetType() == "class User *")
-                {
-                    User *_tempUser = dynamic_cast<User *>(_temp.second);
-                    int MainTxID = _tempUser ->getMainTxID() + 1; //+1是因为matlab中的矩阵序号是从1开始
-                    ImportExport::fout << MainTxID << ";" << endl;
-                }
-            }
-            ImportExport::fout << "];" << endl;
-
-            ImportExport::fout << "%信道增益矩阵，行号为用户ID，列号为基站ID，其中用户ID 1-5 为蜂窝用户，基站 ID = 1 是宏基站" << endl;
-            ImportExport::fout << "channelGain = [" << endl;
-            for (auto _temp : SystemDriveBus::SlotDriveBus)
-            {
-                if (_temp.second->sGetType() == "class channel *")
-                {
-                    channel *_tempChannel = dynamic_cast<channel *>(_temp.second);
-                    sTxID = _tempChannel->getSTxID();
-                    rxID = _tempChannel->GetRxID();
-                    for (auto txID : sTxID)
-                    {
-                        ChannelGain = _tempChannel->GetChannelGain(txID);
-                        ImportExport::fout << ChannelGain << ",";
-                    }
-                    ImportExport::fout << ";" << endl;
-                }
-            }
-            ImportExport::fout << "];" << endl;
         }
 
         SystemDriveBus::iSlot++;

@@ -20,6 +20,7 @@ sense_par SystemDriveBus::system_sense;//存储系统频谱感知参数
 map<int, deviceLocation> SystemDriveBus::cellPosition;//存放所有的Macro基站的位置
 map<int, deviceLocation> SystemDriveBus::SmallCellPosition;//存放所有的SmallCell基站的位置
 map<int, deviceLocation> SystemDriveBus::WifiPosition;//存放所有的Wifi基站的位置
+map<int, deviceLocation> SystemDriveBus::D2DTxPosition;//存放所有的D2DTx的位置
 
 map<int, Interface*> SystemDriveBus::ID2PtrBus;//ID到基类指针映射的登记表，所有系统中的地形和设备都需要登记
 multimap<string, Interface*>SystemDriveBus::Type2PtrBus; //存储生成对象的类型和指针的容器
@@ -184,23 +185,57 @@ void ImportExport::SetScene()
 
     GenerateFileName();
     Interface* _InterfaceTemp;
-
-    //读取LTE（MacroCell）系统参数
-    mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
-    int Macro_num = Macro_mode_par.get_numOfTx();
-    double Macro_radius = Macro_mode_par.get_radius();
-    int Macro_user_num = Macro_mode_par.get_numOfRx();
-
-    //读取Small Cell）系统参数
-    mode_par SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
-    int SmallCell_num = SmallCell_mode_par.get_numOfTx();
-    int SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+    mode_par Macro_mode_par;
+    int Macro_num = -1;
+    double Macro_radius = -1;
+    int Macro_user_num = -1;
+    mode_par SmallCell_mode_par;
+    int SmallCell_num = -1;
+    int SmallCell_user_num = -1;
+    mode_par Wifi_mode_par;
+    int Wifi_num = -1;
+    int Wifi_user_num = -1;
+    mode_par D2D_mode_par;
+    int D2DTx_num = -1;
+    int D2DRx_num = -1;
 
     for (auto temp_mode_par : SystemDriveBus::ModeID2Par)
     {
         if (temp_mode_par.first == 1)//LTE
         {
+            //读取LTE（MacroCell）系统参数
+            Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
+            Macro_num = Macro_mode_par.get_numOfTx();
+            Macro_radius = Macro_mode_par.get_radius();
+            Macro_user_num = Macro_mode_par.get_numOfRx();
+        }
+        if (temp_mode_par.first == 2)//SmallCell
+        {
+            //读取Small Cell系统参数
+            SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
+            SmallCell_num = SmallCell_mode_par.get_numOfTx();
+            SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+        }
+        if (temp_mode_par.first == 3)//Wifi
+        {
+            Wifi_mode_par = SystemDriveBus::ModeID2Par.at(3);
+            Wifi_num = Wifi_mode_par.get_numOfTx();
+            Wifi_user_num = Wifi_mode_par.get_numOfRx();
+        }
+        if (temp_mode_par.first == 4)//D2D
+        {
+            //读取D2D系统参数
+            D2D_mode_par = SystemDriveBus::ModeID2Par.at(4);
+            D2DTx_num = D2D_mode_par.get_numOfTx();
+            D2DRx_num = D2D_mode_par.get_numOfRx();
+        }
+    }
 
+    //基站类对象生成
+    for (auto temp_mode_par : SystemDriveBus::ModeID2Par)
+    {
+        if (temp_mode_par.first == 1)//LTE
+        {
             MacroCell::CellularSysInit(Macro_num, Macro_radius);
             for (int i = 0; i < Macro_num; i++)//创建宏蜂窝小区对象
             {
@@ -218,10 +253,6 @@ void ImportExport::SetScene()
         }
         if (temp_mode_par.first == 3)//Wifi
         {
-            mode_par Wifi_mode_par = SystemDriveBus::ModeID2Par.at(3);
-            int Wifi_num = Wifi_mode_par.get_numOfTx();
-            int Wifi_user_num = Wifi_mode_par.get_numOfRx();
-
             for (int i = 0; i < Wifi_num; ++i)
             {
                 _InterfaceTemp = Wifi::Create();
@@ -236,34 +267,53 @@ void ImportExport::SetScene()
         }
         if (temp_mode_par.first == 4)//D2D
         {
-            mode_par D2D_mode_par = SystemDriveBus::ModeID2Par.at(4);
-            int D2DTx_num = D2D_mode_par.get_numOfTx();
-            int D2DRx_num = D2D_mode_par.get_numOfRx();
 
+        }
+    }
+
+    //用户类对象生成
+    for (auto temp_mode_par : SystemDriveBus::ModeID2Par) {
+        if (temp_mode_par.first == 1)//LTE
+        {
+            for (int i = 0; i < Macro_user_num; i++)
+            {
+                _InterfaceTemp = User::Create("MacroCell");
+                SetPtr2Bus(_InterfaceTemp);
+            }
+        }
+        if (temp_mode_par.first == 2)//SmallCell
+        {
+            for (int j = 0; j < SmallCell_user_num; ++j)
+            {
+                _InterfaceTemp = User::Create("SmallCell");
+                SetPtr2Bus(_InterfaceTemp);
+            }
+        }
+        if (temp_mode_par.first == 3)//Wifi
+        {
+
+        }
+        if (temp_mode_par.first == 4)//D2D
+        {
+            //D2DTx
             for (int i = 0; i < D2DTx_num; i++)
             {
                 _InterfaceTemp = User::Create("D2DTx");
                 SetPtr2Bus(_InterfaceTemp);
             }
-            for (int i = 0; i < D2DRx_num; i++)
-            {
-                _InterfaceTemp = User::Create("D2DRx");
-                SetPtr2Bus(_InterfaceTemp);
+            //D2DRx
+            for (auto _temp : SystemDriveBus::SlotDriveBus) {
+                if (_temp.second->sGetType() == "class User *") {
+                    User *_tempUser = dynamic_cast<User *>(_temp.second);
+                    if (_tempUser->getUser_type() == "D2DTx") {
+                        _InterfaceTemp = User::Create(_temp.second);
+                        SetPtr2Bus(_InterfaceTemp);
+                    }
+                }
             }
         }
     }
 
-    for (int i = 0; i < Macro_user_num; i++)
-    {
-        _InterfaceTemp = User::Create("MacroCell");
-        SetPtr2Bus(_InterfaceTemp);
-    }
-
-    for (int j = 0; j < SmallCell_user_num; ++j)
-    {
-        _InterfaceTemp = User::Create("SmallCell");
-        SetPtr2Bus(_InterfaceTemp);
-    }
 
     //极化状态控制中心
 //    _InterfaceTemp = ControCenter::Create();
@@ -293,7 +343,8 @@ void ImportExport::SetScene()
 
 //    ImportExport::fout << "title('基站和用户位置分布图');" << endl;
     //ImportExport::fout << "legend([h1, h2, h3, h4], 'Macro基站', 'SmallCell基站', 'Wifi基站', '用户');" << endl;
-    ImportExport::fout << "h = legend([h1, h2, h3, h4], 'MBS', 'SBS', 'MUEs', 'SUEs');" << endl;
+//    ImportExport::fout << "h = legend([h1, h2, h3, h4], 'MBS', 'SBS', 'MUEs', 'SUEs');" << endl;
+    ImportExport::fout << "h = legend([h1, h3, h5, h6], 'MBS', 'MUEs', 'D2DTXs', 'D2DRXs');" << endl;
     ImportExport::fout << "set(h,'Fontname','Times New Roman','Fontsize',20);" << endl;
 
     ImportExport::fout.close();

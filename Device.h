@@ -129,7 +129,9 @@ class User :public Interface
 {
 public:
     User(string _user_type);
+    User(Interface * _D2DRxPtr); //构造函数重载 D2D用户的构造函数
     static  Interface * Create(string user_type);//创建函数
+    static  Interface * Create(Interface * _D2DRxPtr);//创建函数重载 D2D用户的构造函数
     void initial(default_random_engine dre);
     void JoinSection2TransData();
     void WorkSlot(default_random_engine dre);
@@ -170,6 +172,7 @@ private:
     int SmallCellID;
     int cellID;
     int indoorOrOutdoor;
+    int D2DTxID; //若用户为D2DRx 该变量保存对应D2DTx的ID
 //室内室外标志, 1室内，0室外
 };
 

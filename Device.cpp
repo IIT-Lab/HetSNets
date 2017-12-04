@@ -23,7 +23,12 @@ MacroCell::MacroCell()
 *************************************************************************************************/
 {
     iID = SystemDriveBus::GetCountDevice();
-    iPriority = 10;//设置该对象的优先级是10
+    if (SystemDriveBus::ULorDL == "UL") {
+        iPriority = 30;//上行链路　接收优先级
+    } else {
+        iPriority = 10;//下行链路　发射优先级
+    }
+
     sType = "class MacroCell *";
     macroID = SystemDriveBus::GetCountMacro();
     mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
@@ -250,7 +255,13 @@ SmallCell::SmallCell()
 *************************************************************************************************/
 {
     iID = SystemDriveBus::GetCountDevice();
-    iPriority = 10; //发射优先级
+
+    if (SystemDriveBus::ULorDL == "UL") {
+        iPriority = 30;//上行链路　接收优先级
+    } else {
+        iPriority = 10;//下行链路　发射优先级
+    }
+
     if (SystemDriveBus::system_sense.get_sence())
     {
         iPriority = 30; //做频谱感知，作为接收对象,设置为接收优先级
@@ -286,7 +297,7 @@ SmallCell::SmallCell()
                 double tempXPoint = tempSmallCellPtr->GetXPoint();
                 double tempYPoint = tempSmallCellPtr->GetYPoint();
                 S2SRadius = getDistance(dXPoint, dYPoint, tempXPoint, tempYPoint);
-                if (S2SRadius < 100) goto part1;
+                if (S2SRadius < 50) goto part1;
             }
         }
     }
@@ -458,7 +469,13 @@ Wifi::Wifi()
 *************************************************************************************************/
 {
     iID = SystemDriveBus::GetCountDevice();
-    iPriority = 10;//设置该信道对象的优先级是50
+
+    if (SystemDriveBus::ULorDL == "UL") {
+        iPriority = 30;//上行链路　接收优先级
+    } else {
+        iPriority = 10;//下行链路　发射优先级
+    }
+
     WifiID = SystemDriveBus::GetCountWifi();
     sType = "class Wifi *";
     mode_par Wifi_mode_par = SystemDriveBus::ModeID2Par.at(3);
@@ -579,23 +596,34 @@ User::User(string _user_type)
 其他信息：
 *************************************************************************************************/
 {
-    //读取LTE（MacroCell）系统参数
-    mode_par Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
-    int Macro_user_num = Macro_mode_par.get_numOfRx();
-    int cell_num = Macro_mode_par.get_numOfTx();
+    //LTE（MacroCell）系统参数
+    mode_par Macro_mode_par;
+    int Macro_user_num;
+    int cell_num;
 
     //读取Small Cell）系统参数
-    mode_par SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
-    int SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+    mode_par SmallCell_mode_par;
+    int SmallCell_user_num;
 
     iID = SystemDriveBus::GetCountDevice();
-    iPriority = 30;
+
+    if (SystemDriveBus::ULorDL == "UL") {
+        iPriority = 10;//上行链路　发射优先级
+    } else {
+        iPriority = 30;//下行链路　接收优先级
+    }
+
     UserID = SystemDriveBus::GetCountUser();
     sType = "class User *";
     user_type = _user_type;
     mainTxID = -1;
+    D2DTxID = -1;
     if (user_type == "MacroCell")
     {
+        //读取LTE（MacroCell）系统参数
+        Macro_mode_par = SystemDriveBus::ModeID2Par.at(1);
+        Macro_user_num = Macro_mode_par.get_numOfRx();
+        cell_num = Macro_mode_par.get_numOfTx();
         part1:
         double U2SRadius = 0; //用户到小蜂窝基站的距离
         double x, y, tempx, tempy;
@@ -648,8 +676,12 @@ User::User(string _user_type)
 
         mainTxID = cellID;
     }
-    if (user_type == "SmallCell")
+    else if (user_type == "SmallCell")
     {
+        //读取Small Cell）系统参数
+        SmallCell_mode_par = SystemDriveBus::ModeID2Par.at(2);
+        SmallCell_user_num = SmallCell_mode_par.get_numOfRx();
+
         double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
         double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::ModeID2Par.at(2).get_radius());
         relativeXPoint = temp_radius * sin(temp_angle);
@@ -663,7 +695,7 @@ User::User(string _user_type)
 
         mainTxID = cell_num + SmallCellID;
     }
-    if (user_type == "Wifi")
+    else if (user_type == "Wifi")
     {
         double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
         double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::ModeID2Par.at(3).get_radius());
@@ -675,7 +707,7 @@ User::User(string _user_type)
         dXPoint = SystemDriveBus::WifiPosition.at(WifiID).dXPoint + relativeXPoint;
         dYPoint = SystemDriveBus::WifiPosition.at(WifiID).dYPoint + relativeYPoint;
     }
-    if (user_type == "D2DTx" || user_type == "D2DRx")
+    else if (user_type == "D2D")
     {
         if (SystemDriveBus::system_shape.get_shape() == "rectangle")
         {
@@ -730,6 +762,55 @@ User::User(string _user_type)
             dYPoint = SystemDriveBus::cellPosition.at(cellID).dYPoint + relativeYPoint;
         }
     }
+    else if (user_type == "D2DTx") {
+        if (SystemDriveBus::system_shape.get_shape() == "circle") {
+            double Tx2BSRadius = 0;
+            while (Tx2BSRadius < 100) {
+                double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
+                double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius());
+                dXPoint = temp_radius * sin(temp_angle);
+                dYPoint = temp_radius * cos(temp_angle);
+                Tx2BSRadius = getDistance(dXPoint, dYPoint, 0, 0);
+            }
+            iPriority = 10; //发射优先级
+            deviceLocation D2DTxLocation;
+            D2DTxLocation.dXPoint = dXPoint;
+            D2DTxLocation.dYPoint = dYPoint;
+            SystemDriveBus::D2DTxPosition.insert(pair<int, deviceLocation>(iID, D2DTxLocation));
+        }
+        else {
+            cout << "error!!!!!" << endl;
+        }
+    }
+    else {
+        cout << "error!!!!!" << endl;
+    }
+}
+
+User::User(Interface * _D2DRxPtr)
+{
+    iID = SystemDriveBus::GetCountDevice();
+    iPriority = 30;//接收优先级
+    UserID = SystemDriveBus::GetCountUser();
+    sType = "class User *";
+    user_type = "D2DRx";
+    mainTxID = -1;
+    D2DTxID = -1;
+
+    double cellRadius = SystemDriveBus::system_shape.get_radius();
+    double Rx2BSRadius = cellRadius + 1;//D2DRx相对宏基站的距离
+    User *_tempUser = dynamic_cast<User *>(_D2DRxPtr);
+    while (Rx2BSRadius > cellRadius) {
+        double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
+        double temp_radius = sqrt((double) rand() / RAND_MAX) * 20;
+        double relativeX = temp_radius * sin(temp_angle);
+        double relativeY = temp_radius * cos(temp_angle);
+        dXPoint = _tempUser->getDXPoint() + relativeX;
+        dYPoint = _tempUser->getDYPoint() + relativeY;
+        Rx2BSRadius = getDistance(dXPoint, dYPoint, 0, 0);
+    }
+    D2DTxID = _tempUser->iGetID();
+    mainTxID = _tempUser->iGetID();
 }
 
 Interface * User::Create(string _user_type)
@@ -743,6 +824,20 @@ Interface * User::Create(string _user_type)
 {
     Interface *UserPtr;
     UserPtr = new User(_user_type);
+    return UserPtr;
+}
+
+Interface * User::Create(Interface * _D2DRxPtr)
+/************************************************************************************************
+函数名称：Create
+主要功能：调用BS的构造函数，并返回BS的对象指针
+输入参数：
+输出参数：BSPtr，BS的对象指针
+其他信息：
+*************************************************************************************************/
+{
+    Interface *UserPtr;
+    UserPtr = new User(_D2DRxPtr);
     return UserPtr;
 }
 
@@ -771,10 +866,17 @@ void User::JoinSection2TransData()
 
 void User::WorkSlot(default_random_engine dre)
 {
-    //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
-    hardware.WorkslotHardwareEntityRx();
-    //调用接收软体类的workslot
-    software.softwareRx.WorkSlotSoftwareEntity();
+    //按照发射和接收优先级区分D2DTx D2DRx
+    if (iPriority >= 30) { //接收优先级　D2DRx
+        //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
+        hardware.WorkslotHardwareEntityRx();
+        //调用接收软体类的workslot
+        software.softwareRx.WorkSlotSoftwareEntity();
+    } else { //发射优先级　D2DTx
+        hardware.WorkslotHardwareEntityTx();
+        software.softwareTx.WorkSlotSoftwareEntity();
+    }
+
 }
 
 void User::Display()
@@ -809,12 +911,12 @@ void User::Out2MatlabFile()
     }
     if (user_type == "D2DTx")
     {
-        ImportExport::fout << "h4 = scatter(" << dXPoint << "," << dYPoint << ",'o', 'CData', [0 0 0] / 255);" << endl;
+        ImportExport::fout << "h5 = scatter(" << dXPoint << "," << dYPoint << ",'^', 'CData', [0 0 0] / 255);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
     if (user_type == "D2DRx")
     {
-        ImportExport::fout << "h4 = scatter(" << dXPoint << "," << dYPoint << ",'o', 'CData', [0 0 255] / 255);" << endl;
+        ImportExport::fout << "h6= scatter(" << dXPoint << "," << dYPoint << ",'x', 'CData', [0 0 255] / 255);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
 }

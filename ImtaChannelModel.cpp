@@ -616,6 +616,18 @@ namespace IMTA
 
         distance_correlated_N(inter_side_distance,SF_Correlationdistance_LOS[scenario],x_num*y_num,coordinate_X,coordinate_Y,SF_wo_std);
     }
+
+    bool losOrNlosSelectUMI(double _x1, double _y1, double _x2, double _y2) {
+        double tempRand = (double)rand() / RAND_MAX;
+        double d = sqrt(pow((_x1 - _x2), 2) + pow((_y1 - _y2), 2)); //发射机到接收机的距离
+        double p = min(18/d, 1) * (1 - exp(-d/63)) + exp(-d/63);
+        if(p > tempRand) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
 
 

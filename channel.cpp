@@ -90,7 +90,7 @@ void channel::UpdateAllTxLinkLossTable()
 
     static int i;
 
-    string losOrNlos;
+    bool losOrNlos;
     Interface *receivePtr = SystemDriveBus::ID2Ptr(receiveID);
     Interface *TXPtr = nullptr;
     MacroCell *macroTxPtr = nullptr;
@@ -127,8 +127,15 @@ void channel::UpdateAllTxLinkLossTable()
             macroTxPtr = dynamic_cast<MacroCell *>(TXPtr);
             x2 = macroTxPtr->GetXPoint();
             y2 = macroTxPtr->GetYPoint();
-            ////UMA场景，非视距
-            pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+
+//            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
+            losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+            if (losOrNlos) {
+                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+            }
+            else {
+                pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+            }
 
             angleX = x1 - x2;
             angleY = y1 - y2;
@@ -161,8 +168,16 @@ void channel::UpdateAllTxLinkLossTable()
             smallCellTxPtr = dynamic_cast<SmallCell *>(TXPtr);
             x2 = smallCellTxPtr->GetXPoint();
             y2 = smallCellTxPtr->GetYPoint();
-            ////UMI场景，非视距
-            pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+
+//            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
+
+            losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+            if (losOrNlos) {
+                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+            }
+            else {
+                pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+            }
         }
         else if (TxType == "class Wifi *")
         {

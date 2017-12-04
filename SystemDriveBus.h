@@ -27,6 +27,7 @@ namespace SystemDriveBus
     map<int, deviceLocation> cellPosition;//存放所有的Macro基站的位置
     map<int, deviceLocation> SmallCellPosition;//存放所有的SmallCell基站的位置
     map<int, deviceLocation> WifiPosition;//存放所有的Wifi基站的位置
+    map<int, deviceLocation> D2DTxPosition;//存放所有的D2DTx的位置
     sinrComputing systemSinrComputing;//存储系统SINR参数
     SenseInterface systemSenseInterface;//频谱感知接口
 
@@ -37,6 +38,7 @@ namespace SystemDriveBus
 
 	int iCountDevice = 0;//给生成的设备计数
     int iSlot;//时隙号
+    string ULorDL;//系统属于上行链路还是下行链路
 
 #else
     extern shape_par system_shape;//存储系统仿真区域参数
@@ -46,6 +48,7 @@ namespace SystemDriveBus
     extern map<int, deviceLocation> cellPosition;//存放所有的Macro基站的位置
     extern map<int, deviceLocation> SmallCellPosition;//存放所有的SmallCell基站的位置
     extern map<int, deviceLocation> WifiPosition;//存放所有的Wifi基站的位置
+    extern map<int, deviceLocation> D2DTxPosition;//存放所有的D2DTx的位置
     extern sinrComputing systemSinrComputing;//存储系统SINR参数
     extern SenseInterface systemSenseInterface;//频谱感知接口
     extern map<int, statistic_variable*> ID2UserVariable;//用户ID——用户的响应统计量
@@ -57,6 +60,7 @@ namespace SystemDriveBus
 
     extern int iCountDevice;//给生成的设备计数
     extern int iSlot;//时隙号
+    extern string ULorDL;//系统属于上行链路还是下行链路
 
 #endif
 

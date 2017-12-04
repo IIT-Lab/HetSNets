@@ -36,6 +36,8 @@ namespace IMTA
 
     void SFInitial();
 
+    bool losOrNlosSelectUMI(double _x1, double _y1, double _x2, double _y2);//UMI场景视距非视距选择
+
     //小尺度计算
     //void LSP_Generation(string _Scenario, );
 }
