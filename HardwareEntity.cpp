@@ -99,3 +99,19 @@ void SmallCellHardwareEntity::InitialHardwareEntity()
     txPower = SystemDriveBus::ModeID2Par.at(2).get_power();
 }
 
+///////////////////////////User硬体类///////////////////////////////
+
+void UserHardwareEntity::InitialHardwareEntity() {
+    //初始化发射功率
+    if (userType == "D2DTx") {
+        txPower = 13;//dBm
+    } else if (userType == "MacroCell") {
+        txPower = 23;//dBm
+    } else {
+        cout << "set power error!!!" << endl;
+    }
+}
+
+void UserHardwareEntity::ConnectUserType(string _userType) {
+    userType = _userType;
+}

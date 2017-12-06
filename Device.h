@@ -40,6 +40,9 @@ public:
     void GenerateSample();
     const vector<int> &getVecSample() const;
 
+    void Scheduler();//调度，装Txbuffer
+    void InterferenceRgister();//进行干扰登记
+
     static int countTag;
 
     MacroHardwareEntity hardware;

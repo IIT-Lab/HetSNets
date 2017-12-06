@@ -91,12 +91,20 @@ class MacroSoftwareEntityTx : public SoftwareEntityTx
 
 };
 
+///////////////////////////Macro接收软体类///////////////////////////////
+
+class MacroSoftwareEntityRx : public SoftwareEntityRx
+{
+
+};
+
 ///////////////////////////Macro软体类///////////////////////////////
 
 class MacroSoftwareEntity : public SoftwareEntity
 {
 public:
     MacroSoftwareEntityTx softwareTx;
+    MacroSoftwareEntityRx softwareRx;
 };
 
 ///////////////////////////SmallCell发射软体类///////////////////////////////

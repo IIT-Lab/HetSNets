@@ -41,44 +41,50 @@ void SoftwareEntityRx::SetMainTxInfo()//设置缓存主服务基站的容器
     int txID = -1;
     int rxID = this->dID;
     Interface *rxPtr = SystemDriveBus::ID2PtrBus.at(rxID);
-//    SmallCell *rxSmallCellPtr = dynamic_cast<SmallCell *>(rxPtr);
-    User *rxUserPtr = dynamic_cast<User *>(rxPtr);
-    if (rxUserPtr->getUser_type() == "MacroCell")
-    {
-        int MacroCellID = rxUserPtr->getCellID();
-        for (auto _temp : SystemDriveBus::SlotDriveBus)
+    if (rxPtr->sGetType() == "class User *") {
+        User *rxUserPtr = dynamic_cast<User *>(rxPtr);
+        if (rxUserPtr->getUser_type() == "MacroCell")
         {
-            if (_temp.second->sGetType() == "class MacroCell *")
+            int MacroCellID = rxUserPtr->getCellID();
+            for (auto _temp : SystemDriveBus::SlotDriveBus)
             {
-                MacroCell *MacroCellPtr = dynamic_cast<MacroCell *>(_temp.second);
-                if (MacroCellPtr->GetmacroID() == MacroCellID) txID = MacroCellPtr->iGetID();
+                if (_temp.second->sGetType() == "class MacroCell *")
+                {
+                    MacroCell *MacroCellPtr = dynamic_cast<MacroCell *>(_temp.second);
+                    if (MacroCellPtr->GetmacroID() == MacroCellID) txID = MacroCellPtr->iGetID();
+                }
             }
         }
-    }
-    else if (rxUserPtr->getUser_type() == "SmallCell")
-    {
-        int SmallCellID = rxUserPtr->getSmallCellID();
-        for (auto _temp : SystemDriveBus::SlotDriveBus)
+        else if (rxUserPtr->getUser_type() == "SmallCell")
         {
-            if (_temp.second->sGetType() == "class SmallCell *")
+            int SmallCellID = rxUserPtr->getSmallCellID();
+            for (auto _temp : SystemDriveBus::SlotDriveBus)
             {
-                SmallCell *SmallCellPtr = dynamic_cast<SmallCell *>(_temp.second);
-                if (SmallCellPtr->getSmallCellID() == SmallCellID) txID = SmallCellPtr->iGetID();
+                if (_temp.second->sGetType() == "class SmallCell *")
+                {
+                    SmallCell *SmallCellPtr = dynamic_cast<SmallCell *>(_temp.second);
+                    if (SmallCellPtr->getSmallCellID() == SmallCellID) txID = SmallCellPtr->iGetID();
+                }
             }
         }
+
+        for (auto vTemp : vecMapTxInfo)
+        {
+            map<int, SoftwareEntityTx *> mainTxTemp;
+            auto mapPtr = vTemp.begin();
+            if (txID == mapPtr->first->GetDeviceID())
+            {
+                auto softTxPtr = mapPtr->first;
+                mainTxTemp[txID] = softTxPtr;
+                vecMapMainTxInfo.push_back(mainTxTemp);//将主服务基站存储在容器中
+            }
+        }
+    } else if (rxPtr->sGetType() == "class SmallCell *") {
+        SmallCell *rxSmallCellPtr = dynamic_cast<SmallCell *>(rxPtr);
+    } else if (rxPtr->sGetType() == "class MacroCell *") {
+        MacroCell *rxMacroCellPtr = dynamic_cast<MacroCell *>(rxPtr);
     }
 
-    for (auto vTemp : vecMapTxInfo)
-    {
-        map<int, SoftwareEntityTx *> mainTxTemp;
-        auto mapPtr = vTemp.begin();
-        if (txID == mapPtr->first->GetDeviceID())
-        {
-            auto softTxPtr = mapPtr->first;
-            mainTxTemp[txID] = softTxPtr;
-            vecMapMainTxInfo.push_back(mainTxTemp);//将主服务基站存储在容器中
-        }
-    }
     vecMapTxInfo.clear();//每个时隙在使用vecMapTxInfo表之前都要将上一个时隙的内容清空，因为该表只跟当前时隙相关
 }
 
@@ -341,11 +347,21 @@ void SoftwareEntityTx::TransmitID2AllRx()
     {
         if (_temp.first >= 30 && _temp.first < 40)
         {
-//            auto rx = dynamic_cast<SmallCell*>(_temp.second); //测试频谱感知
-            auto rx = dynamic_cast<User*>(_temp.second);
             point.first = this->dXPoint;
             point.second = this->dYPoint;
-            rx->software.softwareRx.SetTxInfo(this, point);//调用接收软体类的函数设置发射机坐标信息容器
+
+            if (_temp.second->sGetType() == "class User *") {
+                auto rx = dynamic_cast<User*>(_temp.second);
+                rx->software.softwareRx.SetTxInfo(this, point);//调用接收软体类的函数设置发射机坐标信息容器
+            } else if (_temp.second->sGetType() == "class MacroCell *") {
+                auto rx = dynamic_cast<MacroCell*>(_temp.second);
+                rx->software.softwareRx.SetTxInfo(this, point);//调用接收软体类的函数设置发射机坐标信息容器
+            } else if (_temp.second->sGetType() == "class SmallCell *") {
+                auto rx = dynamic_cast<SmallCell*>(_temp.second);
+                rx->software.softwareRx.SetTxInfo(this, point);//调用接收软体类的函数设置发射机坐标信息容器
+            } else {
+                cout << "set rx error!!!" << endl;
+            }
         }
     }
 }
@@ -399,12 +415,13 @@ void SoftwareEntityTx::WorkSlotSoftwareEntity()
 //    }
 
     TransmitID2AllRx();	//把该发射机的ID坐标信息发送给每个接收机
-    InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
-    Scheduler();	//进行调度,周期性地发送数据包
+//    InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
+//    Scheduler();	//进行调度,周期性地发送数据包
 }
 
 void SoftwareEntityTx::InterferenceRgister()
 {
+
 ////    测试频谱感知，20个小蜂窝作为接收用户，分配20个RB
 //    int selectedRB;
 //    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++)

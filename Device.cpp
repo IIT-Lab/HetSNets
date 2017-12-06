@@ -6,6 +6,7 @@
 #include "Mymath.h"
 #include "ImportExport.h"
 #include "Global.h"
+#include "InterferenceIndex.h"
 
 int MacroCell::countTag = 0;
 int SmallCell::countTag = 0;
@@ -212,12 +213,27 @@ double MacroCell::GetYPoint()
 
 void MacroCell::WorkSlot(default_random_engine dre)
 {
-    //更新功率
-    if (!(SystemDriveBus::iSlot % 1000)) hardware.InitialHardwareEntity();
-    //调用发射软体类的workslot
-    software.softwareTx.WorkSlotSoftwareEntity();
-    //调用硬体类的发射workslot，将发射机的功率指针传给所有的信道登记下来
-    hardware.WorkslotHardwareEntityTx();
+    //按照发射和接收优先级区分上下行链路
+    if (iPriority >= 30) { //接收优先级　上行链路
+
+        InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
+        Scheduler();	//进行调度,周期性地发送数据包
+
+        //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
+        hardware.WorkslotHardwareEntityRx();
+        //调用接收软体类的workslot
+        software.softwareRx.WorkSlotSoftwareEntity();
+    } else { //发射优先级　下行链路
+        //更新功率
+        hardware.InitialHardwareEntity();
+        //调用发射软体类的workslot
+        software.softwareTx.WorkSlotSoftwareEntity();
+        //调用硬体类的发射workslot，将发射机的功率指针传给所有的信道登记下来
+        hardware.WorkslotHardwareEntityTx();
+
+        InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
+        Scheduler();	//进行调度,周期性地发送数据包
+    }
 }
 
 void MacroCell::GenerateSample()
@@ -241,6 +257,71 @@ int MacroCell::GetmacroID() {
 
 MacroCell::~MacroCell() {
 
+}
+
+void MacroCell::Scheduler() {
+
+}
+
+void MacroCell::InterferenceRgister() {
+    int selectedRB;
+
+    if (iPriority >= 30) { //接收优先级　上行链路
+        ////随机资源分配
+        //登记接收机占用RB
+        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) { //宏基站作为接收机占用所有的RB
+            InterferenceIndex::GetInstance().RFRxRegisterOneRB(this->iGetID(), SystemDriveBus::iSlot, selectedRB);
+        }
+
+        //测试
+        vector<int> vecSelectedRB{0,1,0,1};
+        int i = 0;
+
+        for (auto _temp : SystemDriveBus::SlotDriveBus) { //D2DRx随机占用RB 1个D2DRx占用1个RB
+            if (_temp.first >=30 && _temp.first < 40 && _temp.second->sGetType() == "class User *") {
+                selectedRB = vecSelectedRB[i];
+                InterferenceIndex::GetInstance().RFRxRegisterOneRB(_temp.second->iGetID(), SystemDriveBus::iSlot, selectedRB);
+                i++;
+            }
+        }
+
+        //登记发射机占用RB
+        for (auto _temp : SystemDriveBus::SlotDriveBus) {
+            if (_temp.first <= 10) {
+                User *_tempUser = dynamic_cast<User *>(_temp.second);
+                if (_tempUser->getUser_type() == "MacroCell") {
+                    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) {
+                        InterferenceIndex::GetInstance().RFRegisterOneRB(_tempUser->iGetID(), SystemDriveBus::iSlot, selectedRB);
+                    }
+                }
+            }
+        }
+
+        i = 0;
+        for (auto _temp : SystemDriveBus::SlotDriveBus) { //D2DTx随机占用RB 1个D2DTx占用1个RB
+            if (_temp.first <= 10 && _temp.second->sGetType() == "class User *") {
+                User *_tempUser = dynamic_cast<User *>(_temp.second);
+                if (_tempUser->getUser_type() == "MacroCell") {
+                    selectedRB = vecSelectedRB[i];
+                    InterferenceIndex::GetInstance().RFRegisterOneRB(_tempUser->iGetID(), SystemDriveBus::iSlot, selectedRB);
+                    i++;
+                }
+            }
+        }
+
+    } else { //发射优先级　下行链路
+        ////随机资源分配
+        //登记发射机占用RB
+        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) {
+            InterferenceIndex::GetInstance().RFRegisterOneRB(this->iGetID(), SystemDriveBus::iSlot, selectedRB);
+        }
+        //登记接收机占用RB
+        for (auto _temp : SystemDriveBus::SlotDriveBus) {
+            if (_temp.first >=30 && _temp.first < 40) {
+
+            }
+        }
+    }
 }
 
 ///////////////////////////SmallCell类///////////////////////////////
@@ -856,12 +937,13 @@ void User::JoinSection2TransData()
     software.softwareRx.ConnectLocation(dXPoint, dYPoint);//获取D2DUser坐标
 //    software.softwareTx.ConnectID(iID);//获取D2DUserID
     software.softwareRx.ConnectID(iID);//获取D2DUserID
-//    software.softwareTx.ConnectType(sGetType());
+    software.softwareTx.ConnectType(user_type);
     hardware.ConnectID(iID);//获取D2DUserID
 //    software.softwareRx.ConnectMode(mode);
     software.softwareRx.ConnectHardLinkloss(hardware.GetLinkloss());//接收软体获取硬体里的路损
 //    software.softwareTx.ConnectHardPower(hardware.txPower);//发射软体获取硬体里的功率
 //    hardware.ConnectstartSlot(software.softwareTx.startSlot);//硬体从软体发射类里获取起始发射时间
+    hardware.ConnectUserType(user_type);
 }
 
 void User::WorkSlot(default_random_engine dre)
@@ -873,6 +955,8 @@ void User::WorkSlot(default_random_engine dre)
         //调用接收软体类的workslot
         software.softwareRx.WorkSlotSoftwareEntity();
     } else { //发射优先级　D2DTx
+        //更新功率
+        hardware.InitialHardwareEntity();
         hardware.WorkslotHardwareEntityTx();
         software.softwareTx.WorkSlotSoftwareEntity();
     }

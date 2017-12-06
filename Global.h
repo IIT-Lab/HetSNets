@@ -7,7 +7,7 @@
 
 #define PI                                  3.1415926
 #define ARQNUM								5			            //ARQ过程数
-#define SUBBNUM								5						//subband总数//for TDD
+#define SUBBNUM								2						//subband总数//for TDD
 
 #define BS_HEIGHT                           10
 #define UE_HEIGHT	                        1.5

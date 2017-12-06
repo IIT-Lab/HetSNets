@@ -371,7 +371,7 @@ void ImportExport::PushSceneToMySQL()
         else cout << "删除失败" << endl;
 
         string cleanUser = "DELETE FROM User";
-        if (mysql->insert(cleanSmallCellBaseStation))
+        if (mysql->insert(cleanUser))
         {
             cout << "删除成功" << endl;
         }

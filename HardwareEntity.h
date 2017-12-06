@@ -65,8 +65,12 @@ public:
 class UserHardwareEntity : public HardwareEntity
 {
 public:
-    //void InitialHardwareEntity(); //初始化发射功率
+    void InitialHardwareEntity(); //初始化发射功率
     //void WorkslotHardwareEntityTX();
+    void ConnectUserType(string _userType);//将用户的类型传入对象
+
+private:
+    string userType;
 };
 
 #endif //HETSNETS_HARDWAREENTITY_H
