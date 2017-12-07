@@ -52,7 +52,7 @@ void MySQLManager::setPassword(string password)
 {//    用户没有指定密码
     if ( password.empty() )
     {
-        std::cout << "Password is null! Used default value: " << std::endl;
+//        std::cout << "Password is null! Used default value: " << std::endl;
         this ->PASSWORD = new char[1];
         strcpy(this ->PASSWORD, "");
     }
@@ -211,3 +211,21 @@ string doubleToString(double _number)
     ss >> s;
     return s;
 }
+
+int string2Int(string _string) {
+    stringstream ss;
+    int number;
+    ss << _string;
+    ss >> number;
+    return number;
+}
+
+double string2Double(string _string) {
+    stringstream ss;
+    double number;
+    ss << _string;
+    ss >> number;
+    return number;
+}
+
+

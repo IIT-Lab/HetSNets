@@ -66,12 +66,11 @@ public:
     void SinrComputing();//SINR计算，包含导入BLER曲线，判断包是否正确接收
     void SetTxInfo(SoftwareEntityTx *softTx, pair<double, double>_point);//设置缓存所有可能的发射机信息容器
 
-    double P_mue[2]; //宏蜂窝发射极化状态
-    creal_T P_cbs_data[2]; //小蜂窝发射极化状态
-    creal_T P_cue[2]; //小蜂窝用户极化状态
-    creal_T H_mbscue[4];
-    creal_T H_cbscue[4];
-    creal_T H_cbsmue[4];
+    //MySQL操作函数
+    void GetMainTxID(vector<int> &_vecMainTxID);
+    void GetRBID(vector<int> &_vecRBID);
+    void GetLinklossPower(map<int, map<int, pair<double, double>>> &_mapMapLinklossPower);
+    double GetLinkloss(int _TxID, int _RxID, int _slotID);
 
 private:
     int dID;//用户的ID
@@ -82,6 +81,10 @@ private:
     map<int, map<int, double>> doubleMapSINR;//存放每个RB块下，对应主服务基站的SINR，因为可能在一个RB上有多个主服务基站
     double dXPoint;
     double dYPoint;
+
+    vector<int> vecMainTxID; //储存主服务发射机ID
+    vector<int> vecRBID; //接收机占用的RBID
+    map<int, map<int, pair<double, double>>> mapMapLinklossPower;//外层map的键是RBID，map的键是发射机号，值是该发射机与接收机的链路损耗和发射功率
 };
 
 ///////////////////////////Macro发射软体类///////////////////////////////

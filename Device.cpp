@@ -264,64 +264,43 @@ void MacroCell::Scheduler() {
 }
 
 void MacroCell::InterferenceRgister() {
-    int selectedRB;
-
     if (iPriority >= 30) { //接收优先级　上行链路
-        ////随机资源分配
-        //登记接收机占用RB
-        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) { //宏基站作为接收机占用所有的RB
-            InterferenceIndex::GetInstance().RFRxRegisterOneRB(this->iGetID(), SystemDriveBus::iSlot, selectedRB);
-        }
-
+        ////资源分配
         //测试
-        vector<int> vecSelectedRB{0,1,0,1};
-        int i = 0;
-
-        for (auto _temp : SystemDriveBus::SlotDriveBus) { //D2DRx随机占用RB 1个D2DRx占用1个RB
-            if (_temp.first >=30 && _temp.first < 40 && _temp.second->sGetType() == "class User *") {
-                selectedRB = vecSelectedRB[i];
-                InterferenceIndex::GetInstance().RFRxRegisterOneRB(_temp.second->iGetID(), SystemDriveBus::iSlot, selectedRB);
-                i++;
-            }
-        }
-
-        //登记发射机占用RB
-        for (auto _temp : SystemDriveBus::SlotDriveBus) {
-            if (_temp.first <= 10) {
-                User *_tempUser = dynamic_cast<User *>(_temp.second);
-                if (_tempUser->getUser_type() == "MacroCell") {
-                    for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) {
-                        InterferenceIndex::GetInstance().RFRegisterOneRB(_tempUser->iGetID(), SystemDriveBus::iSlot, selectedRB);
-                    }
-                }
-            }
-        }
-
-        i = 0;
-        for (auto _temp : SystemDriveBus::SlotDriveBus) { //D2DTx随机占用RB 1个D2DTx占用1个RB
-            if (_temp.first <= 10 && _temp.second->sGetType() == "class User *") {
-                User *_tempUser = dynamic_cast<User *>(_temp.second);
-                if (_tempUser->getUser_type() == "MacroCell") {
-                    selectedRB = vecSelectedRB[i];
-                    InterferenceIndex::GetInstance().RFRegisterOneRB(_tempUser->iGetID(), SystemDriveBus::iSlot, selectedRB);
-                    i++;
-                }
-            }
-        }
-
+        //2个宏蜂窝用户
+        double MacroUserPower = 23;
+        PushRBAllocation2MySQL(1, 0, 0, SystemDriveBus::iSlot, MacroUserPower);
+        PushRBAllocation2MySQL(2, 0, 1, SystemDriveBus::iSlot, MacroUserPower);
+        //4个D2D pair
+        double D2DUserPower = 13;
+        PushRBAllocation2MySQL(3, 7, 0, SystemDriveBus::iSlot, D2DUserPower);
+        PushRBAllocation2MySQL(4, 8, 1, SystemDriveBus::iSlot, D2DUserPower);
+        PushRBAllocation2MySQL(5, 9, 0, SystemDriveBus::iSlot, D2DUserPower);
+        PushRBAllocation2MySQL(6, 10, 1, SystemDriveBus::iSlot, D2DUserPower);
     } else { //发射优先级　下行链路
-        ////随机资源分配
-        //登记发射机占用RB
-        for (selectedRB = 0; selectedRB < SUBBNUM; selectedRB++) {
-            InterferenceIndex::GetInstance().RFRegisterOneRB(this->iGetID(), SystemDriveBus::iSlot, selectedRB);
-        }
-        //登记接收机占用RB
-        for (auto _temp : SystemDriveBus::SlotDriveBus) {
-            if (_temp.first >=30 && _temp.first < 40) {
-
-            }
-        }
+        ////资源分配
     }
+}
+
+void MacroCell::PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slotID, double _power) {
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "lee", "281217", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        string TxID = intToString(_TxID);
+        string RxID = intToString(_RxID);
+        string RBID = intToString(_RBID);
+        string slotID = intToString(_slotID);
+        string power = doubleToString(_power);
+        //构造MySQL插入语句
+        string SQLString = "INSERT INTO TxIDRxID2RBID(TxID, RxID, RBID, slotID, power) "
+                                   "VALUES(" + TxID + "," + RxID + "," + RBID + "," + slotID + "," + power + ")";
+
+        if (mysql->insert(SQLString))
+        {
+//                cout << "TxIDRxID2RBID插入成功" << endl;
+        }
+        else cout << "TxIDRxID2RBID插入失败" << endl;
+    } else cout << "连接未建立" << endl;
 }
 
 ///////////////////////////SmallCell类///////////////////////////////
@@ -1043,5 +1022,9 @@ const string &User::getUser_type() const {
 
 int User::getMainTxID() const {
     return mainTxID;
+}
+
+int User::getD2DTxID() const {
+    return D2DTxID;
 }
 

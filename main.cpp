@@ -20,13 +20,10 @@ int main()
 
     //实例化一个系统对象
     ImportExport system = ImportExport::GetInstance();
+    system.ClearMySQL();
 
     //配置仿真区域参数和仿真模式参数
     system.system_config();
-
-    //统计系统SINR
-    sinrComputing _systemSinrComputing = sinrComputing::GetInstance();
-    SystemDriveBus::systemSinrComputing = _systemSinrComputing;
 
     srand((unsigned int)(time(NULL)));
     //构建发送和接收设备
@@ -51,39 +48,12 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    //配置参数，测试用
-    int sense_test = SystemDriveBus::system_sense.get_sence(); //测试频谱感知
-    if (sense_test)
-    {
-        system.GenerateSenseFile();//创建存储频谱感知参数的matlab文件
-        SenseInterface tempSenseInterface = SenseInterface::GetInstance();
-        SystemDriveBus::systemSenseInterface = tempSenseInterface;
-    }
-
-    system.GenerateChannelGainFile();//创建存储信道增益的matlab文件
-
-    //初始化用户的响应统计量
-    for (auto _temp : SystemDriveBus::SlotDriveBus)
-    {
-        if (_temp.first >= 30 && _temp.second->sGetType() == "class User *")
-        {
-            User *_tempUser = dynamic_cast<User *>(_temp.second);
-            int RxID = _tempUser->iGetID();
-            statistic_variable* statistic_variablePtr = statistic_variable::Create();
-            statistic_variablePtr->initial(RxID);
-            SystemDriveBus::ID2UserVariable.insert(pair<int, statistic_variable*>(RxID, statistic_variablePtr));
-        }
-    }
-
-//    int slot = SystemDriveBus::system_sense.get_numOfSlot();//总时隙数
     int slot = 1;
 
     //开始进行时隙循环
     cout << "时隙循环开始" << endl;
     while (SystemDriveBus::iSlot != slot)
     {
-//        if (!(SystemDriveBus::iSlot % 1000)) SystemDriveBus::systemSinrComputing.clearSinr(); //1000个时隙统计一次SINR，清空SINR
-
         i += 100;//为了使两次随机数变化更大一点
         std::default_random_engine dre(i); //保证循环每次的随机数引擎的初始值不相同
 
@@ -96,8 +66,6 @@ int main()
 
         SystemDriveBus::iSlot++;
     }
-
-//    cout<< "系统平均SINR:" << SystemDriveBus::systemSinrComputing.getSinr() << endl;
 
     return 0;
 }

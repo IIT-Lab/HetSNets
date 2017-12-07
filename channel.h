@@ -24,6 +24,7 @@ public:
     void WorkSlot(default_random_engine dre);
     int GetRxID();
     void UpdateAllTxLinkLossTable();
+    void PushChannelGain2MySQL();
     void setmLinkLossPtr(vector<map<int, pair<double, double>>> *vecMapLinkLossPowerPtr);//提供给UE的接口，UE的硬体部分传递一个路损容器指针过来，信道直接往这个指针指向的容器中写入路损
     void setAllTxPowerMap(int txID, double power);//获取发射机硬体里的功率值
     void ChannelInitial(Interface &_Receiver, vector<Interface*>vTxContainer);

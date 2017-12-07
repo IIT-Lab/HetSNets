@@ -75,7 +75,7 @@ void InterferenceIndex::GetRelevantUserTxRB(int const iRBIndex, int  iSlotID, se
     }
     if (!RBTag)                                                                                  //若不存在RB
     {
-        std::cout << "时隙 " << iSlotID << " 下要查找的RB " << iRBIndex << " 不存在！退出GetRelevantUserRB函数！" << endl;
+//        std::cout << "时隙 " << iSlotID << " 下要查找的RB " << iRBIndex << " 不存在！退出GetRelevantUserRB函数！" << endl;
         return;
     }
 }
@@ -99,7 +99,7 @@ void InterferenceIndex::GetRelevantUserRxRB(int const iRBIndex, int  iSlotID, se
     }
     if (!RBTag)                                                                                  //若不存在RB
     {
-        std::cout << "时隙 " << iSlotID << " 下要查找的RB " << iRBIndex << " 不存在！退出GetRelevantUserRB函数！" << endl;
+//        std::cout << "时隙 " << iSlotID << " 下要查找的RB " << iRBIndex << " 不存在！退出GetRelevantUserRB函数！" << endl;
         return;
     }
 }

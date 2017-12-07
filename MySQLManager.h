@@ -69,5 +69,7 @@ private:
 
 string intToString(int _number);
 string doubleToString(double _number);
+int string2Int(string _string);
+double  string2Double(string _string);
 
 #endif //HETSNETS_MYSQLMANAGER_H

@@ -355,28 +355,6 @@ void ImportExport::PushSceneToMySQL()
     MySQLManager *mysql = new MySQLManager("127.0.0.1", "lee", "281217", "platform", (unsigned int)3306);
     mysql->initConnection();
     if(mysql->getConnectionStatus()) {
-        //清空数据库中的数据表
-        string cleanMacroBaseStation = "DELETE FROM MacroBaseStation";
-        if (mysql->insert(cleanMacroBaseStation))
-        {
-            cout << "删除成功" << endl;
-        }
-        else cout << "删除失败" << endl;
-
-        string cleanSmallCellBaseStation = "DELETE FROM SmallCellBaseStation";
-        if (mysql->insert(cleanSmallCellBaseStation))
-        {
-            cout << "删除成功" << endl;
-        }
-        else cout << "删除失败" << endl;
-
-        string cleanUser = "DELETE FROM User";
-        if (mysql->insert(cleanUser))
-        {
-            cout << "删除成功" << endl;
-        }
-        else cout << "删除失败" << endl;
-
         //将基站和用户信息插入数据库
         for (auto _temp : SystemDriveBus::SlotDriveBus)
         {
@@ -449,7 +427,88 @@ void ImportExport::PushSceneToMySQL()
                 else cout << "执行失败" << endl;
             }
         }
+
+        //将接收机和对应的主服务发射机映射插入数据库
+        int tempTxID = -1;
+        int tempRxID = -1;
+        string MainTxID, RxID;
+        for (auto _temp : SystemDriveBus::SlotDriveBus) {
+            if (SystemDriveBus::ULorDL == "UL") { //上行链路
+                if (_temp.first <= 10 && _temp.second->sGetType() == "class User *") { //筛选出作为发射机的用户
+                    User * tempUserPtr = dynamic_cast<User *>(_temp.second);
+                    if (tempUserPtr->getUser_type() == "MacroCell") { //接收用户是宏基站
+                        tempTxID = tempUserPtr->iGetID();
+                        tempRxID = tempUserPtr->getCellID();
+                        MainTxID = intToString(tempTxID);
+                        RxID = intToString(tempRxID);
+                        //构造MySQL插入语句
+                        string SQLString = "INSERT INTO RxID2MainTxID(RxID, MainTxID) "
+                                                   "VALUES(" + RxID + "," + MainTxID + ")";
+
+                        if (mysql->insert(SQLString))
+                        {
+//                cout << "RxID2MainTxID插入成功" << endl;
+                        }
+                        else cout << "RxID2MainTxID插入失败" << endl;
+                    }
+                } else if (_temp.first >= 30 && _temp.second->sGetType() == "class User *") { //筛选出作为接收机的用户(D2DRx)
+                    User * tempUserPtr = dynamic_cast<User *>(_temp.second);
+                    tempRxID = tempUserPtr->iGetID();
+                    tempTxID = tempUserPtr->getD2DTxID();
+                    MainTxID = intToString(tempTxID);
+                    RxID = intToString(tempRxID);
+                    //构造MySQL插入语句
+                    string SQLString = "INSERT INTO RxID2MainTxID(RxID, MainTxID) "
+                                               "VALUES(" + RxID + "," + MainTxID + ")";
+
+                    if (mysql->insert(SQLString))
+                    {
+//                cout << "RxID2MainTxID插入成功" << endl;
+                    }
+                    else cout << "RxID2MainTxID插入失败" << endl;
+                }
+            } else { //下行链路
+
+            }
+        }
     } else cout << "连接未建立" << endl;
+}
+
+void ImportExport::ClearMySQL() {
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "lee", "281217", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        //清空数据库中的数据表
+        string cleanMacroBaseStation = "DELETE FROM MacroBaseStation";
+        if (mysql->insert(cleanMacroBaseStation)) {
+            cout << "MacroBaseStation删除成功" << endl;
+        } else cout << "MacroBaseStation删除失败" << endl;
+
+        string cleanSmallCellBaseStation = "DELETE FROM SmallCellBaseStation";
+        if (mysql->insert(cleanSmallCellBaseStation)) {
+            cout << "SmallCellBaseStation删除成功" << endl;
+        } else cout << "SmallCellBaseStation删除失败" << endl;
+
+        string cleanUser = "DELETE FROM User";
+        if (mysql->insert(cleanUser)) {
+            cout << "User删除成功" << endl;
+        } else cout << "User删除失败" << endl;
+
+        string cleanChannelGain = "DELETE FROM channelGain";
+        if (mysql->insert(cleanChannelGain)) {
+            cout << "channelGain删除成功" << endl;
+        } else cout << "channelGain删除失败" << endl;
+
+        string cleanRxID2MainTxID = "DELETE FROM RxID2MainTxID";
+        if (mysql->insert(cleanRxID2MainTxID)) {
+            cout << "RxID2MainTxID删除成功" << endl;
+        } else cout << "RxID2MainTxID删除失败" << endl;
+
+        string cleanTxIDRxID2RBID = "DELETE FROM TxIDRxID2RBID";
+        if (mysql->insert(cleanTxIDRxID2RBID)) {
+            cout << "TxIDRxID2RBID删除成功" << endl;
+        } else cout << "TxIDRxID2RBID删除失败" << endl;
+    }
 }
 
 void ImportExport::PushChannelToMySQL()
@@ -506,5 +565,7 @@ void ImportExport::SetPtr2Bus(Interface *_InterfaceTemp)
     SystemDriveBus::DisplayDriveBus.insert(pair<int, Interface*>(_InterfaceTemp->iGetPriority(), _InterfaceTemp));
     SystemDriveBus::SlotDriveBus.insert(pair<int, Interface*>(_InterfaceTemp->iGetPriority(), _InterfaceTemp));
 }
+
+
 
 

@@ -42,6 +42,7 @@ public:
 
     void Scheduler();//调度，装Txbuffer
     void InterferenceRgister();//进行干扰登记
+    void PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slotID, double _power);
 
     static int countTag;
 
@@ -159,6 +160,8 @@ public:
     static int countTag;
 
     int getMainTxID() const;
+
+    int getD2DTxID() const;
 
     UserHardwareEntity hardware;
     UserSoftwareEntity software;

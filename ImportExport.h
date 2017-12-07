@@ -24,6 +24,7 @@ public:
     void GenerateChannelGainFile();
     void system_config();
     void SetScene();
+    void ClearMySQL();
     void PushSceneToMySQL();
     void SetSceneByMySQL();
     void PushChannelToMySQL();
