@@ -216,6 +216,9 @@ void MacroCell::WorkSlot(default_random_engine dre)
     //按照发射和接收优先级区分上下行链路
     if (iPriority >= 30) { //接收优先级　上行链路
 
+        SetVecMacroUserID();
+        SetMapD2DUserID();
+        SetGraph();
         Scheduler();	//进行调度 对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
 
         //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
@@ -260,17 +263,17 @@ MacroCell::~MacroCell() {
 void MacroCell::Scheduler() {
     if (iPriority >= 30) { //接收优先级　上行链路
         //资源分配
-        //测试
-        //2个宏蜂窝用户
-        double MacroUserPower = 23;
-        PushRBAllocation2MySQL(1, 0, 0, SystemDriveBus::iSlot, MacroUserPower);
-        PushRBAllocation2MySQL(2, 0, 1, SystemDriveBus::iSlot, MacroUserPower);
-        //4个D2D pair
-        double D2DUserPower = 13;
-        PushRBAllocation2MySQL(3, 7, 0, SystemDriveBus::iSlot, D2DUserPower);
-        PushRBAllocation2MySQL(4, 8, 1, SystemDriveBus::iSlot, D2DUserPower);
-        PushRBAllocation2MySQL(5, 9, 0, SystemDriveBus::iSlot, D2DUserPower);
-        PushRBAllocation2MySQL(6, 10, 1, SystemDriveBus::iSlot, D2DUserPower);
+//        //测试
+//        //2个宏蜂窝用户
+//        double MacroUserPower = 23;
+//        PushRBAllocation2MySQL(1, 0, 0, SystemDriveBus::iSlot, MacroUserPower);
+//        PushRBAllocation2MySQL(2, 0, 1, SystemDriveBus::iSlot, MacroUserPower);
+//        //4个D2D pair
+//        double D2DUserPower = 13;
+//        PushRBAllocation2MySQL(3, 7, 0, SystemDriveBus::iSlot, D2DUserPower);
+//        PushRBAllocation2MySQL(4, 8, 1, SystemDriveBus::iSlot, D2DUserPower);
+//        PushRBAllocation2MySQL(5, 9, 0, SystemDriveBus::iSlot, D2DUserPower);
+//        PushRBAllocation2MySQL(6, 10, 1, SystemDriveBus::iSlot, D2DUserPower);
 
     } else { //发射优先级　下行链路
         ////资源分配
@@ -296,6 +299,89 @@ void MacroCell::PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slo
         }
         else cout << "TxIDRxID2RBID插入失败" << endl;
     } else cout << "连接未建立" << endl;
+}
+
+void MacroCell::SetGraph() {
+    int MacroUserNum = (int)vecMacroUserID.size();
+    int D2DPairNum = (int)mapD2DUserID.size();
+    int nodeNum = MacroUserNum + D2DPairNum;
+
+    double MacroUserTxPower = SystemDriveBus::ModeID2Par.at(1).get_power(); //dBm
+    double D2DTxPower = SystemDriveBus::ModeID2Par.at(4).get_power(); //dBm
+    MacroUserTxPower = pow(10, (MacroUserTxPower - 30) / 10);//W
+    D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
+    MacroUserTxPower = MacroUserTxPower / RBNUM;
+    D2DTxPower = D2DTxPower / RBNUM;
+
+    //将所有代表宏蜂窝用户的节点相连
+    int edgeID = 0;
+    for (int MacroUserID1 : vecMacroUserID) {
+        for (int MacroUserID2 = MacroUserID1 + 1; MacroUserID2 <= MacroUserNum; MacroUserID2++) {
+            if (MacroUserID1 != MacroUserID2) {
+                vector<int> vecNodes;
+                vecNodes.push_back(MacroUserID1 - 1);//因为有一个宏小区基站　MacroUserID从1开始计数　所以导入节点vec时要减一
+                vecNodes.push_back(MacroUserID2 - 1);
+                mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                edgeID++;
+            }
+        }
+    }
+
+    //计算蜂窝用户和对D2DRx的干扰
+
+    //计算D2DTx对基站的干扰
+
+    //计算D2D pair之间的干扰
+
+    //写入incidence Matrix
+    for (int nodeID = 0; nodeID < nodeNum; ++nodeID) {
+        vector<int> vecNode2Edge;
+        for (auto temp : mapEdgeVecNodes) {
+//            edgeID = temp.first;
+            bool haveEdge = false;
+            for (auto tempNodeID : temp.second) {
+                if (nodeID == tempNodeID) haveEdge = true;
+            }
+            if (haveEdge) {
+                vecNode2Edge.push_back(1);
+            } else {
+                vecNode2Edge.push_back(0);
+            }
+        }
+        graph.push_back(vecNode2Edge);
+    }
+
+    //输出图
+    for (int i = 0; i < graph.size(); ++i) {
+        for (int j = 0; j < graph[0].size(); ++j) {
+            cout << graph[i][j] << ",";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+}
+
+void MacroCell::SetVecMacroUserID() {
+    for (auto _temp : SystemDriveBus::SlotDriveBus) {
+        if (_temp.second->sGetType() == "class User *") {
+            User* tempUser = dynamic_cast<User *>(_temp.second);
+            if (tempUser->getUser_type() == "MacroCell") {
+                vecMacroUserID.push_back(tempUser->iGetID());
+            }
+        }
+    }
+}
+
+void MacroCell::SetMapD2DUserID() {
+    for (auto _temp : SystemDriveBus::SlotDriveBus) {
+        if (_temp.second->sGetType() == "class User *") {
+            User* tempUser = dynamic_cast<User *>(_temp.second);
+            if (tempUser->getUser_type() == "D2DRx") {
+                mapD2DUserID.insert(pair<int, int>(tempUser->getD2DTxID(), tempUser->iGetID()));
+            }
+        }
+    }
 }
 
 ///////////////////////////SmallCell类///////////////////////////////

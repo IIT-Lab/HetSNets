@@ -41,6 +41,9 @@ public:
 
     void Scheduler();//调度 进行干扰登记
     void PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slotID, double _power);
+    void SetVecMacroUserID();
+    void SetMapD2DUserID();
+    void SetGraph();
 
     static int countTag;
 
@@ -57,6 +60,12 @@ private:
 
     vector<int> vecSample;
     int numOfSample;
+
+    vector<vector<int>> graph; //表示普通图的矩阵incidence Matrix
+    vector<vector<int>> hypergraph; //表示超图的矩阵incidence Matrix
+    vector<int> vecMacroUserID; //宏蜂窝用户的ID
+    map<int, int> mapD2DUserID; //D2D用户的ID
+    map<int, vector<int>> mapEdgeVecNodes;//map的键是边序号　vector储存对应的节点号
 };
 
 ///////////////////////////SmallCell类///////////////////////////////
