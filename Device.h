@@ -9,7 +9,6 @@
 #include "HardwareEntity.h"
 #include "SoftwareEntity.h"
 #include "ControlCenter.h"
-#include "psshn_platform/psshn_platform.h"
 
 struct deviceLocation
 {
@@ -40,8 +39,7 @@ public:
     void GenerateSample();
     const vector<int> &getVecSample() const;
 
-    void Scheduler();//调度，装Txbuffer
-    void InterferenceRgister();//进行干扰登记
+    void Scheduler();//调度 进行干扰登记
     void PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slotID, double _power);
 
     static int countTag;
@@ -90,8 +88,6 @@ public:
 
     SmallCellHardwareEntity hardware;
     SmallCellSoftwareEntity software;
-
-    creal_T P_cbs_data[2]; //小蜂窝发射极化状态
 
 private:
     double dXPoint;

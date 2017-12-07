@@ -2,7 +2,6 @@
 // Created by lee on 17-11-17.
 //
 #include "ControlCenter.h"
-#include "psshn_platform/psshn_platform.h"
 #include "SystemDriveBus.h"
 
 ControCenter::ControCenter() {

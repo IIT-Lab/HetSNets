@@ -10,9 +10,6 @@ using namespace std;
 //总线声明
 int SystemDriveBus::iSlot;
 string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
-sinrComputing SystemDriveBus::systemSinrComputing;
-SenseInterface SystemDriveBus::systemSenseInterface;
-map<int, statistic_variable*> SystemDriveBus::ID2UserVariable;
 
 int main()
 {

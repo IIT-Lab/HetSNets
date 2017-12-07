@@ -216,8 +216,7 @@ void MacroCell::WorkSlot(default_random_engine dre)
     //按照发射和接收优先级区分上下行链路
     if (iPriority >= 30) { //接收优先级　上行链路
 
-        InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
-        Scheduler();	//进行调度,周期性地发送数据包
+        Scheduler();	//进行调度 对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
 
         //调用硬体类的接收workslot，将路损指针传给信道，直接写入接收硬体，便于接收软体进行SINR计算
         hardware.WorkslotHardwareEntityRx();
@@ -231,8 +230,7 @@ void MacroCell::WorkSlot(default_random_engine dre)
         //调用硬体类的发射workslot，将发射机的功率指针传给所有的信道登记下来
         hardware.WorkslotHardwareEntityTx();
 
-        InterferenceRgister();	//对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
-        Scheduler();	//进行调度,周期性地发送数据包
+        Scheduler();	//进行调度 对该发射机随机选择RB块进行数据包的发送，并登记在发射端的干扰登记表里
     }
 }
 
@@ -260,12 +258,8 @@ MacroCell::~MacroCell() {
 }
 
 void MacroCell::Scheduler() {
-
-}
-
-void MacroCell::InterferenceRgister() {
     if (iPriority >= 30) { //接收优先级　上行链路
-        ////资源分配
+        //资源分配
         //测试
         //2个宏蜂窝用户
         double MacroUserPower = 23;
@@ -277,6 +271,7 @@ void MacroCell::InterferenceRgister() {
         PushRBAllocation2MySQL(4, 8, 1, SystemDriveBus::iSlot, D2DUserPower);
         PushRBAllocation2MySQL(5, 9, 0, SystemDriveBus::iSlot, D2DUserPower);
         PushRBAllocation2MySQL(6, 10, 1, SystemDriveBus::iSlot, D2DUserPower);
+
     } else { //发射优先级　下行链路
         ////资源分配
     }

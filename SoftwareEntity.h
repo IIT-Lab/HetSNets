@@ -10,7 +10,6 @@
 #include "Traffic.h"
 #include "HARQACKTreatment.h"
 #include "ControlCenter.h"
-#include "psshn_platform/psshn_platform.h"
 
 using namespace std;
 
@@ -55,12 +54,9 @@ private:
 class SoftwareEntityRx
 {
 public:
-    int GetDeviceID();//获取用户的ID
     void ConnectID(int iID);//将用户的ID传入对象
     void ConnectLocation(double dxPoint, double dyPoint);//将用户的坐标传入对象
-    void ConnectMode(string _mode);
     void WorkSlotSoftwareEntity();//接收软体的workslot
-    void SetMainTxInfo();//设置缓存主服务基站的容器
     void ConnectHardLinkloss(vector<map<int, pair<double, double>>> &TLinklossPowerVecMap);//将功率和路损取过来
     void Sinr2Bler();//查询SINR-BLER曲线，得出每个SINR对应的BLER，随机出一个数，判断数据包是否正确接收
     void SinrComputing();//SINR计算，包含导入BLER曲线，判断包是否正确接收
@@ -74,13 +70,9 @@ public:
 
 private:
     int dID;//用户的ID
-    string mode;
     vector<map<SoftwareEntityTx *, pair<double, double>>> vecMapTxInfo;//缓存所有可能的发射机信息容器
     vector<map<int, SoftwareEntityTx *>> vecMapMainTxInfo;//缓存主服务基站的容器
-    vector<map<int, pair<double, double>>> *vLinklossPowerVecMap;//vector下标是RB块号【0-20】，map的键是发射机号，值是该发射机与接收机的链路损耗
     map<int, map<int, double>> doubleMapSINR;//存放每个RB块下，对应主服务基站的SINR，因为可能在一个RB上有多个主服务基站
-    double dXPoint;
-    double dYPoint;
 
     vector<int> vecMainTxID; //储存主服务发射机ID
     vector<int> vecRBID; //接收机占用的RBID
