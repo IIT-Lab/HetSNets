@@ -44,6 +44,7 @@ public:
     void SetVecMacroUserID();
     void SetMapD2DUserID();
     void SetGraph();
+    void SetHypergraph();
 
     static int countTag;
 
