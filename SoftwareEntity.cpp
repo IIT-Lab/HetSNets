@@ -43,7 +43,7 @@ void SoftwareEntityRx::ConnectHardLinkloss(vector<map<int, pair<double, double>>
 void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，判断包是否正确接收
 {
     doubleMapSINR.clear();//每个时隙在使用SINR表之前都要将上一个时隙的内容清空，因为该表只跟当前时隙相关
-    double txPow, sinr, thermalNoisePow, signalPow = 0, linkloss = 0, channelGain = 0, interferencePow = 0,totalPow = 0;;
+    double txPow, sinr, rate, thermalNoisePow, signalPow = 0, linkloss = 0, channelGain = 0, interferencePow = 0,totalPow = 0;;
     int RBID, TxID = -1;
     //1个RB,12个连续的载波,12*15000=180000Hz
     double whiteNoise = -174;//-174dBm/Hz
@@ -75,9 +75,12 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         cout << "RxID: " << dID << endl;
                         interferencePow = totalPow - signalPow;
                         sinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                        rate = 180000 * log2(1 + sinr);
                         sinr = 10 * log10(sinr);//dB值
                         cout << "SINR: " << sinr << endl;
+                        cout << "rate: " << rate << endl;
                         cout << "-----------------------------" << endl;
+                        SetSINR(dID, RBID, SystemDriveBus::iSlot, sinr, rate);
                     }
                 }
             }

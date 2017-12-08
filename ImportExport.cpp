@@ -509,6 +509,11 @@ void ImportExport::ClearMySQL() {
         if (mysql->insert(cleanTxIDRxID2RBID)) {
             cout << "TxIDRxID2RBID删除成功" << endl;
         } else cout << "TxIDRxID2RBID删除失败" << endl;
+
+        string cleanSINR = "DELETE FROM SINR";
+        if (mysql->insert(cleanSINR)) {
+            cout << "SINR删除成功" << endl;
+        } else cout << "SINR删除失败" << endl;
     }
     mysql->destroyConnection();
 }
