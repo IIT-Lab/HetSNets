@@ -66,7 +66,7 @@ public:
     void GetMainTxID(vector<int> &_vecMainTxID);
     void GetRBID(vector<int> &_vecRBID);
     void GetLinklossPower(map<int, map<int, pair<double, double>>> &_mapMapLinklossPower);
-    double GetLinkloss(int _TxID, int _RxID, int _slotID);
+//    double GetLinkloss(int _TxID, int _RxID, int _slotID);
 
 private:
     int dID;//用户的ID

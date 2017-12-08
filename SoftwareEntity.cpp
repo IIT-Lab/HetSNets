@@ -47,36 +47,41 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
     int RBID, TxID = -1;
     //1个RB,12个连续的载波,12*15000=180000Hz
     double whiteNoise = -174;//-174dBm/Hz
-    double noiseFig = 10;
+    double noiseFig = 1;
     thermalNoisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
+    vecMainTxID.clear();
+    vecRBID.clear();
+    mapMapLinklossPower.clear();
     GetMainTxID(vecMainTxID);
     GetRBID(vecRBID);
     GetLinklossPower(mapMapLinklossPower);
 
     for (auto tempMap : mapMapLinklossPower) {
         RBID = tempMap.first;
-        cout << "RBID: " << RBID << endl;
-        for (auto tempLinklossPower : tempMap.second) {
-            txPow = tempLinklossPower.second.second;//dBm
-            txPow = pow(10, (txPow - 30) / 10);//W
-            linkloss = tempLinklossPower.second.first;//dB
-            channelGain = pow(10, -linkloss / 10);//线性值
-            totalPow += txPow * channelGain;
-            TxID = tempLinklossPower.first;
-            for (auto _MainTxID : vecMainTxID) {
-                if (TxID == _MainTxID) {
-                    signalPow = txPow * channelGain;
+        if (RBID > -1) {
+            for (auto tempLinklossPower : tempMap.second) {
+                txPow = tempLinklossPower.second.second;//dBm
+                txPow = pow(10, (txPow - 30) / 10);//W
+                linkloss = tempLinklossPower.second.first;//dB
+                channelGain = pow(10, -linkloss / 10);//线性值
+                totalPow += txPow * channelGain;
+                TxID = tempLinklossPower.first;
+                for (auto _MainTxID : vecMainTxID) {
+                    if (TxID == _MainTxID) {
+                        signalPow = txPow * channelGain;
+                        cout << "RBID: " << RBID << endl;
+                        cout << "TxID: " << TxID << endl;
+                        cout << "RxID: " << dID << endl;
+                        interferencePow = totalPow - signalPow;
+                        sinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                        sinr = 10 * log10(sinr);//dB值
+                        cout << "SINR: " << sinr << endl;
+                        cout << "-----------------------------" << endl;
+                    }
                 }
             }
         }
-        cout << "TxID: " << TxID << endl;
-        cout << "RxID: " << dID << endl;
-        interferencePow = totalPow - signalPow;
-        sinr = signalPow / (interferencePow + thermalNoisePow); //线性
-        sinr = 10 * log10(sinr);//dB值
-        cout << "SINR: " << sinr << endl;
-        cout << "-----------------------------" << endl;
     }
 }
 
@@ -111,6 +116,7 @@ void SoftwareEntityRx::GetMainTxID(vector<int> &_vecMainTxID) {
         else
             cout << "执行失败" << endl;
     }
+    mysql->destroyConnection();
 }
 
 void SoftwareEntityRx::GetLinklossPower(map<int, map<int, pair<double, double>>> &_mapMapLinklossPower) {
@@ -146,6 +152,7 @@ void SoftwareEntityRx::GetLinklossPower(map<int, map<int, pair<double, double>>>
             mapLinklossPower.clear();
         }
     }
+    mysql->destroyConnection();
 }
 
 void SoftwareEntityRx::GetRBID(vector<int> &_vecRBID) {
@@ -170,34 +177,35 @@ void SoftwareEntityRx::GetRBID(vector<int> &_vecRBID) {
         else
             cout << "执行失败" << endl;
     }
+    mysql->destroyConnection();
 }
 
-double SoftwareEntityRx::GetLinkloss(int _TxID, int _RxID, int _slotID) {
-    string TxID = intToString(_TxID); //发射机的ID
-    string RxID = intToString(_RxID); //接收机的ID
-    string slotID = intToString(_slotID);
-    double linkLoss = 0;
-
-    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
-    mysql->initConnection();
-    if(mysql->getConnectionStatus()) {
-        mysql->clearResultList();
-        string SQLString = "SELECT linkLoss FROM channelGain WHERE RxID = " + RxID + " AND TxID = " + TxID + " AND slotID = " + slotID;
-        if(mysql->runSQLCommand(SQLString)) {
-            vector<vector<string> > result = mysql->getResult();
-            for(auto & vec : result) {
-                for(auto &str : vec) {
-                    string strlinkLoss = str.c_str();
-//                    cout << "linkLoss：" << strlinkLoss << endl;;
-                    linkLoss = string2Double(strlinkLoss);
-                }
-            }
-        }
-        else
-            cout << "执行失败" << endl;
-    }
-    return linkLoss;
-}
+//double SoftwareEntityRx::GetLinkloss(int _TxID, int _RxID, int _slotID) {
+//    string TxID = intToString(_TxID); //发射机的ID
+//    string RxID = intToString(_RxID); //接收机的ID
+//    string slotID = intToString(_slotID);
+//    double linkLoss = 0;
+//
+//    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+//    mysql->initConnection();
+//    if(mysql->getConnectionStatus()) {
+//        mysql->clearResultList();
+//        string SQLString = "SELECT linkLoss FROM channelGain WHERE RxID = " + RxID + " AND TxID = " + TxID + " AND slotID = " + slotID;
+//        if(mysql->runSQLCommand(SQLString)) {
+//            vector<vector<string> > result = mysql->getResult();
+//            for(auto & vec : result) {
+//                for(auto &str : vec) {
+//                    string strlinkLoss = str.c_str();
+////                    cout << "linkLoss：" << strlinkLoss << endl;;
+//                    linkLoss = string2Double(strlinkLoss);
+//                }
+//            }
+//        }
+//        else
+//            cout << "执行失败" << endl;
+//    }
+//    return linkLoss;
+//}
 
 ///////////////////////////发射软体类///////////////////////////////
 

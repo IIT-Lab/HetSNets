@@ -148,7 +148,6 @@ void channel::UpdateAllTxLinkLossTable()
                 x2 = macroTxPtr->GetXPoint();
                 y2 = macroTxPtr->GetYPoint();
 
-//            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
                 losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
                 if (losOrNlos) {
                     pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
@@ -156,6 +155,8 @@ void channel::UpdateAllTxLinkLossTable()
                 else {
                     pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
                 }
+
+//                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
 
                 angleX = x1 - x2;
                 angleY = y1 - y2;
@@ -194,6 +195,8 @@ void channel::UpdateAllTxLinkLossTable()
                 else {
                     pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
                 }
+
+//                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
             } else {
                 cout << "set tx error!!!" << endl;
             }

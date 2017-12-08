@@ -472,6 +472,7 @@ void ImportExport::PushSceneToMySQL()
             }
         }
     } else cout << "连接未建立" << endl;
+    mysql->destroyConnection();
 }
 
 void ImportExport::ClearMySQL() {
@@ -509,6 +510,7 @@ void ImportExport::ClearMySQL() {
             cout << "TxIDRxID2RBID删除成功" << endl;
         } else cout << "TxIDRxID2RBID删除失败" << endl;
     }
+    mysql->destroyConnection();
 }
 
 void ImportExport::PushChannelToMySQL()

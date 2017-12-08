@@ -71,5 +71,6 @@ string intToString(int _number);
 string doubleToString(double _number);
 int string2Int(string _string);
 double  string2Double(string _string);
+double GetLinkloss(int _TxID, int _RxID, int _slotID);
 
 #endif //HETSNETS_MYSQLMANAGER_H

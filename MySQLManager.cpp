@@ -228,4 +228,32 @@ double string2Double(string _string) {
     return number;
 }
 
+double GetLinkloss(int _TxID, int _RxID, int _slotID) {
+    string TxID = intToString(_TxID); //发射机的ID
+    string RxID = intToString(_RxID); //接收机的ID
+    string slotID = intToString(_slotID);
+    double linkLoss = 0;
+
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        mysql->clearResultList();
+        string SQLString = "SELECT linkLoss FROM channelGain WHERE RxID = " + RxID + " AND TxID = " + TxID + " AND slotID = " + slotID;
+        if(mysql->runSQLCommand(SQLString)) {
+            vector<vector<string> > result = mysql->getResult();
+            for(auto & vec : result) {
+                for(auto &str : vec) {
+                    string strlinkLoss = str.c_str();
+//                    cout << "linkLoss：" << strlinkLoss << endl;;
+                    linkLoss = string2Double(strlinkLoss);
+                }
+            }
+        }
+        else
+            cout << "执行失败" << endl;
+    }
+    mysql->destroyConnection();
+    return linkLoss;
+}
+
 

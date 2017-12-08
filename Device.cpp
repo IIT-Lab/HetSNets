@@ -7,6 +7,7 @@
 #include "ImportExport.h"
 #include "Global.h"
 #include "InterferenceIndex.h"
+#include "graphColoring.h"
 
 int MacroCell::countTag = 0;
 int SmallCell::countTag = 0;
@@ -262,6 +263,46 @@ MacroCell::~MacroCell() {
 
 void MacroCell::Scheduler() {
     if (iPriority >= 30) { //接收优先级　上行链路
+
+        /********************************超图*********************************/
+        int nodeNum = (int)graph.size();
+        map<int, hyperNode*> mapNodeID2HyperNodePtr;
+
+        for (int i = 0; i < nodeNum; ++i) {
+            hyperNode* hyperNodePtr = new hyperNode(i);
+            hyperNodePtr->initial(graph);
+            mapNodeID2HyperNodePtr.insert(pair<int, hyperNode*>(i, hyperNodePtr));
+        }
+
+        hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
+
+        int MacroUserNum = (int)vecMacroUserID.size();
+        int D2DPairNum = (int)mapD2DUserID.size();
+        double MacroUserTxPower = SystemDriveBus::ModeID2Par.at(1).get_power(); //dBm
+        double D2DTxPower = SystemDriveBus::ModeID2Par.at(4).get_power(); //dBm
+//        MacroUserTxPower = pow(10, (MacroUserTxPower - 30) / 10);//W
+//        D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
+//        MacroUserTxPower = MacroUserTxPower / RBNUM;//W
+//        D2DTxPower = D2DTxPower / RBNUM;//W
+//        MacroUserTxPower = 10 * log10(MacroUserTxPower) + 30;//dBm
+//        D2DTxPower = 10 * log10(D2DTxPower) + 30;//dBm
+        int TxID, RxID, RBID;
+
+        for (auto temp : mapNodeID2HyperNodePtr) {
+            int NodeID = temp.first;
+            if (NodeID < MacroUserNum) { //Macro User
+                TxID = NodeID + 1;
+                RxID = 0;
+                RBID = temp.second->getColor();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, MacroUserTxPower);
+            } else { //D2DUser
+                TxID = NodeID + 1;
+                RxID = NodeID + D2DPairNum + 1;
+                RBID = temp.second->getColor();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
+            }
+        }
+
         //资源分配
 //        //测试
 //        //2个宏蜂窝用户
@@ -302,6 +343,7 @@ void MacroCell::PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slo
 }
 
 void MacroCell::SetGraph() {
+    graph.clear();
     int MacroUserNum = (int)vecMacroUserID.size();
     int D2DPairNum = (int)mapD2DUserID.size();
     int nodeNum = MacroUserNum + D2DPairNum;
@@ -327,11 +369,82 @@ void MacroCell::SetGraph() {
         }
     }
 
+    double sir = 0;
+    double threshold = 10;//dB 干扰阈值
     //计算蜂窝用户和对D2DRx的干扰
+    for (int MacroUserID : vecMacroUserID) {
+        for (auto D2DPair : mapD2DUserID) {
+            int D2DTxID = D2DPair.first;
+            int D2DRxID = D2DPair.second;
+            double signalLinkloss = GetLinkloss(D2DTxID, D2DRxID, SystemDriveBus::iSlot);
+            double interLinkloss = GetLinkloss(MacroUserID, D2DRxID, SystemDriveBus::iSlot);
+            double signalGain = pow(10, -signalLinkloss / 10);//线性值
+            double interGain = pow(10, -interLinkloss / 10);//线性值
+            sir = (D2DTxPower * signalGain) / (MacroUserTxPower * interGain);
+            sir = 10 * log10(sir);//dB值
+            if (sir > threshold) {
+//                cout << "no edge" << endl;
+            } else {
+//                cout << "set edge" << endl;
+                vector<int> vecNodes;
+                vecNodes.push_back(MacroUserID - 1);
+                vecNodes.push_back(D2DTxID - 1);
+                mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                edgeID++;
+            }
+        }
+    }
 
     //计算D2DTx对基站的干扰
+    for (int MacroUserID : vecMacroUserID) {
+        for (auto D2DPair : mapD2DUserID) {
+            int D2DTxID = D2DPair.first;
+            double signalLinkloss = GetLinkloss(MacroUserID, 0, SystemDriveBus::iSlot);
+            double interLinkloss = GetLinkloss(D2DTxID, 0, SystemDriveBus::iSlot);
+            double signalGain = pow(10, -signalLinkloss / 10);//线性值
+            double interGain = pow(10, -interLinkloss / 10);//线性值
+            sir = (MacroUserTxPower * signalGain) / (D2DTxPower * interGain);
+            sir = 10 * log10(sir);//dB值
+            if (sir > threshold) {
+//                cout << "no edge" << endl;
+            } else {
+//                cout << "set edge" << endl;
+                vector<int> vecNodes;
+                vecNodes.push_back(MacroUserID - 1);
+                vecNodes.push_back(D2DTxID - 1);
+                mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                edgeID++;
+            }
+        }
+    }
 
-    //计算D2D pair之间的干扰
+    //计算D2D pair1 对　D2D pair2 的干扰
+    for (auto D2DPair1 : mapD2DUserID) {
+        int D2DTx1ID = D2DPair1.first;
+        int D2DRx1ID = D2DPair1.second;
+        for (auto D2DPair2 : mapD2DUserID) {
+            int D2DTx2ID = D2DPair2.first;
+            int D2DRx2ID = D2DPair2.second;
+            if (D2DRx1ID != D2DRx2ID) {
+                double signalLinkloss = GetLinkloss(D2DTx2ID, D2DRx2ID, SystemDriveBus::iSlot);
+                double interLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
+                double signalGain = pow(10, -signalLinkloss / 10);//线性值
+                double interGain = pow(10, -interLinkloss / 10);//线性值
+                sir = (MacroUserTxPower * signalGain) / (D2DTxPower * interGain);
+                sir = 10 * log10(sir);//dB值
+                if (sir > threshold) {
+//                    cout << "no edge" << endl;
+                } else {
+//                    cout << "set edge" << endl;
+                    vector<int> vecNodes;
+                    vecNodes.push_back(D2DTx1ID - 1);
+                    vecNodes.push_back(D2DTx2ID - 1);
+                    mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                    edgeID++;
+                }
+            }
+        }
+    }
 
     //写入incidence Matrix
     for (int nodeID = 0; nodeID < nodeNum; ++nodeID) {
@@ -352,17 +465,18 @@ void MacroCell::SetGraph() {
     }
 
     //输出图
-    for (int i = 0; i < graph.size(); ++i) {
-        for (int j = 0; j < graph[0].size(); ++j) {
-            cout << graph[i][j] << ",";
-        }
-        cout << endl;
-    }
-    cout << endl;
+//    for (int i = 0; i < graph.size(); ++i) {
+//        for (int j = 0; j < graph[0].size(); ++j) {
+//            cout << graph[i][j] << ",";
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
 
 }
 
 void MacroCell::SetVecMacroUserID() {
+    vecMacroUserID.clear();
     for (auto _temp : SystemDriveBus::SlotDriveBus) {
         if (_temp.second->sGetType() == "class User *") {
             User* tempUser = dynamic_cast<User *>(_temp.second);
@@ -374,6 +488,7 @@ void MacroCell::SetVecMacroUserID() {
 }
 
 void MacroCell::SetMapD2DUserID() {
+    mapD2DUserID.clear();
     for (auto _temp : SystemDriveBus::SlotDriveBus) {
         if (_temp.second->sGetType() == "class User *") {
             User* tempUser = dynamic_cast<User *>(_temp.second);

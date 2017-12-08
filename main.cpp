@@ -45,7 +45,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 1;
+    int slot = 2;
 
     //开始进行时隙循环
     cout << "时隙循环开始" << endl;
