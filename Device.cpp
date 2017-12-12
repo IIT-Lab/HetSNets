@@ -1288,12 +1288,14 @@ User::User(Interface * _D2DRxPtr)
     mainTxID = -1;
     D2DTxID = -1;
 
+    double MaxRadius = 50; //D2D发射机和接收机之间的最大间距
+
     double cellRadius = SystemDriveBus::system_shape.get_radius();
     double Rx2BSRadius = cellRadius + 1;//D2DRx相对宏基站的距离
     User *_tempUser = dynamic_cast<User *>(_D2DRxPtr);
     while (Rx2BSRadius > cellRadius) {
         double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
-        double temp_radius = sqrt((double) rand() / RAND_MAX) * 20;
+        double temp_radius = sqrt((double) rand() / RAND_MAX) * MaxRadius;
         double relativeX = temp_radius * sin(temp_angle);
         double relativeY = temp_radius * cos(temp_angle);
         dXPoint = _tempUser->getDXPoint() + relativeX;
@@ -1405,12 +1407,18 @@ void User::Out2MatlabFile()
     }
     if (user_type == "D2DTx")
     {
-        ImportExport::fout << "h5 = scatter(" << dXPoint << "," << dYPoint << ",'^', 'CData', [0 0 0] / 255);" << endl;
+        ImportExport::fout << "h5 = scatter(" << dXPoint << "," << dYPoint << ",'^', 'CData', [0 0 255] / 255);" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
     if (user_type == "D2DRx")
     {
+        int TxID = mainTxID;
+        Interface * D2DTxPtr = SystemDriveBus::ID2PtrBus.at(TxID);
+        User * D2DTxUserPtr = dynamic_cast<User *>(D2DTxPtr);
+        double TxXPoint = D2DTxUserPtr->getDXPoint();
+        double TxYPoint = D2DTxUserPtr->getDYPoint();
         ImportExport::fout << "h6= scatter(" << dXPoint << "," << dYPoint << ",'x', 'CData', [0 0 255] / 255);" << endl;
+        ImportExport::fout << "plot([" << TxXPoint << "," << dXPoint << "],[" << TxYPoint << "," << dYPoint << "],'b-')" << endl;
         ImportExport::fout << "hold on;" << endl;
     }
 }

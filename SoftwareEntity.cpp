@@ -80,7 +80,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         cout << "SINR: " << sinr << endl;
                         cout << "rate: " << rate << endl;
                         cout << "-----------------------------" << endl;
-                        SetSINR(dID, RBID, SystemDriveBus::iSlot, sinr, rate);
+                        SetSINR(TxID, dID, RBID, SystemDriveBus::iSlot, sinr, rate);
                     }
                 }
             }

@@ -256,7 +256,8 @@ double GetLinkloss(int _TxID, int _RxID, int _slotID) {
     return linkLoss;
 }
 
-void SetSINR(int _RxID, int _RBID, int _slotID, double _sinr, double _rate) {
+void SetSINR(int _TxID, int _RxID, int _RBID, int _slotID, double _sinr, double _rate) {
+    string TxID = intToString(_TxID);
     string RxID = intToString(_RxID); //接收机的ID
     string RBID = intToString(_RBID); //RBID
     string slotID = intToString(_slotID);
@@ -266,8 +267,8 @@ void SetSINR(int _RxID, int _RBID, int _slotID, double _sinr, double _rate) {
     MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
     mysql->initConnection();
     if(mysql->getConnectionStatus()) {
-        string SQLString = "INSERT INTO SINR(RxID, RBID, slotID, sinr, rate) "
-                                   "VALUES(" + RxID + "," + RBID + "," + slotID + "," + sinr + "," + rate + ")";
+        string SQLString = "INSERT INTO SINR(TxID, RxID, RBID, slotID, sinr, rate) "
+                                   "VALUES(" + TxID + "," + RxID + "," + RBID + "," + slotID + "," + sinr + "," + rate + ")";
         if(mysql->insert(SQLString)) {
 //            cout << "插入成功" << endl;
         }

@@ -2,8 +2,6 @@
 
 #include "ImportExport.h"
 #include "SystemDriveBus.h"
-#include "Sense.h"
-#include "Computing.h"
 
 using namespace std;
 
@@ -63,6 +61,9 @@ int main()
 
         SystemDriveBus::iSlot++;
     }
+
+    //每次循环结束　统计一次系统容量
+    double sumRatePerSlot;
 
     return 0;
 }
