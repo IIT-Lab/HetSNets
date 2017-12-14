@@ -11,7 +11,7 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
-    if (0) {
+    if (1) {
         cout << "普通图：" << endl;
 
         double sinr = 0;
