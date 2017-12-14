@@ -10,6 +10,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string.h>
 //#include <strstream>
 #include <sstream>
@@ -74,5 +75,6 @@ double string2Double(string _string);
 double GetLinkloss(int _TxID, int _RxID, int _slotID);
 void SetSINR(int _TxID, int _RxID, int _RBID, int _slotID, double _sinr, double _rate);
 double GetSumRate(int _slotID);
+double GetSinr(int _slotID, int _TxID);
 
 #endif //HETSNETS_MYSQLMANAGER_H

@@ -11,6 +11,38 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
+    if (1) {
+        cout << "普通图：" << endl;
+
+        double sinr = 0;
+        for (int TxID = 1; TxID <= 30; ++TxID) {
+            sinr = GetSinr(0, TxID);
+            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+        }
+
+        cout << "********************************************" << endl;
+
+        for (int TxID = 31; TxID <= 60; ++TxID) {
+            sinr = GetSinr(0, TxID);
+            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+        }
+
+        cout << "超图：" << endl;
+
+        for (int TxID = 1; TxID <= 30; ++TxID) {
+            sinr = GetSinr(1, TxID);
+            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+        }
+
+        cout << "********************************************" << endl;
+
+        for (int TxID = 31; TxID <= 60; ++TxID) {
+            sinr = GetSinr(1, TxID);
+            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+        }
+
+        return 0;
+    }
     SystemDriveBus::ULorDL = "UL"; //上行链路
 
     //实例化一个系统对象

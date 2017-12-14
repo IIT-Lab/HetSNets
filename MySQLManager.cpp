@@ -304,4 +304,30 @@ double GetSumRate(int _slotID) {
     return sumRatePerSlot;
 }
 
+double GetSinr(int _slotID, int _TxID) {
+    string slotID = intToString(_slotID);
+    string TxID = intToString(_TxID);
+    double sinr = 0;
+
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        mysql->clearResultList();
+        string SQLString = "SELECT sinr FROM SINR WHERE slotID = " + slotID + " AND TxID = " + TxID;
+        if(mysql->runSQLCommand(SQLString)) {
+            vector<vector<string> > result = mysql->getResult();
+            for(auto & vec : result) {
+                for(auto &str : vec) {
+                    string strSinr = str.c_str();
+                    sinr = string2Double(strSinr);
+                }
+            }
+        }
+        else
+            cout << "执行失败" << endl;
+    }
+    mysql->destroyConnection();
+    return sinr;
+}
+
 
