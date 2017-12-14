@@ -59,11 +59,15 @@ int main()
             _temp.second->WorkSlot(dre);
         }
 
+        //每次循环结束　统计一次系统容量
+        double sumRatePerSlot;
+        sumRatePerSlot = GetSumRate(SystemDriveBus::iSlot);
+        cout << "********************************************" << endl;
+        cout << "第" << SystemDriveBus::iSlot << "个时隙的系统容量:" << sumRatePerSlot << endl;
+        cout << "********************************************" << endl;
+
         SystemDriveBus::iSlot++;
     }
-
-    //每次循环结束　统计一次系统容量
-    double sumRatePerSlot;
 
     return 0;
 }

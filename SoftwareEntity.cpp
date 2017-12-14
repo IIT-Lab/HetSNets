@@ -75,7 +75,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         cout << "RxID: " << dID << endl;
                         interferencePow = totalPow - signalPow;
                         sinr = signalPow / (interferencePow + thermalNoisePow); //线性
-                        rate = 180000 * log2(1 + sinr);
+                        rate = 20000000 / RBNUM * log2(1 + sinr);
                         sinr = 10 * log10(sinr);//dB值
                         cout << "SINR: " << sinr << endl;
                         cout << "rate: " << rate << endl;

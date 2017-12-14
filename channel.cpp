@@ -350,6 +350,7 @@ void channel::PushChannelGain2MySQL() {
             else cout << "执行失败" << endl;
         }
     }
+    mysql->destroyConnection();
 }
 
 int mobileList::getLOSSelect() const {

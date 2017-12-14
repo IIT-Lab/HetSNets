@@ -43,8 +43,8 @@ public:
     void PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slotID, double _power);
     void SetVecMacroUserID();
     void SetMapD2DUserID();
-    void SetGraph();
-    void SetHypergraph();
+    void SetGraph(double _threshold);
+    void SetHypergraph(double _threshold);
 
     static int countTag;
 

@@ -278,4 +278,30 @@ void SetSINR(int _TxID, int _RxID, int _RBID, int _slotID, double _sinr, double 
     mysql->destroyConnection();
 }
 
+double GetSumRate(int _slotID) {
+    string slotID = intToString(_slotID);
+    double sumRatePerSlot = 0;
+
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        mysql->clearResultList();
+        string SQLString = "SELECT rate FROM SINR WHERE slotID = " + slotID;
+        if(mysql->runSQLCommand(SQLString)) {
+            vector<vector<string> > result = mysql->getResult();
+            for(auto & vec : result) {
+                for(auto &str : vec) {
+                    string strRate = str.c_str();
+                    sumRatePerSlot = sumRatePerSlot + string2Double(strRate);
+                }
+            }
+        }
+        else
+            cout << "执行失败" << endl;
+    }
+    mysql->destroyConnection();
+
+    return sumRatePerSlot;
+}
+
 

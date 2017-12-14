@@ -73,6 +73,6 @@ int string2Int(string _string);
 double string2Double(string _string);
 double GetLinkloss(int _TxID, int _RxID, int _slotID);
 void SetSINR(int _TxID, int _RxID, int _RBID, int _slotID, double _sinr, double _rate);
-double GetRate();
+double GetSumRate(int _slotID);
 
 #endif //HETSNETS_MYSQLMANAGER_H

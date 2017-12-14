@@ -262,10 +262,11 @@ void MacroCell::Scheduler() {
         /********************************图构建*********************************/
         SetVecMacroUserID();
         SetMapD2DUserID();
+        double threshold = 20;
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
         if (SystemDriveBus::iSlot == 0) {
-            SetGraph();
+            SetGraph(threshold);
             int nodeNum = (int)graph.size();
 
             for (int i = 0; i < nodeNum; ++i) {
@@ -280,7 +281,7 @@ void MacroCell::Scheduler() {
 
         /********************************超图着色*********************************/
         if (SystemDriveBus::iSlot == 1) {
-            SetHypergraph();
+            SetHypergraph(threshold);
             int nodeNum = (int)hypergraph.size();
 
             for (int i = 0; i < nodeNum; ++i) {
@@ -344,9 +345,10 @@ void MacroCell::PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slo
         }
         else cout << "TxIDRxID2RBID插入失败" << endl;
     } else cout << "连接未建立" << endl;
+    mysql->destroyConnection();
 }
 
-void MacroCell::SetGraph() {
+void MacroCell::SetGraph(double _threshold) {
     graph.clear();
     int MacroUserNum = (int)vecMacroUserID.size();
     int D2DPairNum = (int)mapD2DUserID.size();
@@ -373,7 +375,7 @@ void MacroCell::SetGraph() {
         }
     }
 
-    double threshold = 10;//dB 干扰阈值
+    double threshold = _threshold;//dB 干扰阈值
     double M2Dsir = 0;
     double D2Bsir = 0;
     //计算蜂窝用户和对D2DRx的干扰 计算D2DTx对基站的干扰 D2B M2D
@@ -415,7 +417,7 @@ void MacroCell::SetGraph() {
         for (auto D2DPair2 : mapD2DUserID) {
             int D2DTx2ID = D2DPair2.first;
             int D2DRx2ID = D2DPair2.second;
-            if (D2DRx1ID != D2DRx2ID) {
+            if (D2DRx1ID < D2DRx2ID) {
                 double S2SLinkloss = GetLinkloss(D2DTx2ID, D2DRx2ID, SystemDriveBus::iSlot);
                 double F2SLinkloss = GetLinkloss(D2DTx1ID, D2DRx2ID, SystemDriveBus::iSlot);
                 double F2FLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
@@ -431,7 +433,7 @@ void MacroCell::SetGraph() {
                 if (F2Ssir > threshold && S2Fsir > threshold) {
 //                    cout << "no edge" << endl;
                 } else {
-//                    cout << "set edge" << endl;
+//                    cout << "set edge " << D2DTx1ID << "," << D2DTx2ID << endl;
                     vector<int> vecNodes;
                     vecNodes.push_back(D2DTx1ID - 1);
                     vecNodes.push_back(D2DTx2ID - 1);
@@ -460,14 +462,14 @@ void MacroCell::SetGraph() {
         graph.push_back(vecNode2Edge);
     }
 
-    //输出图
+//    //输出图
 //    for (int i = 0; i < graph.size(); ++i) {
 //        for (int j = 0; j < graph[0].size(); ++j) {
 //            cout << graph[i][j] << ",";
 //        }
 //        cout << endl;
 //    }
-    cout << endl;
+//    cout << endl;
 }
 
 void MacroCell::SetVecMacroUserID() {
@@ -494,7 +496,7 @@ void MacroCell::SetMapD2DUserID() {
     }
 }
 
-void MacroCell::SetHypergraph() {
+void MacroCell::SetHypergraph(double _threshold) {
     hypergraph.clear();
     int MacroUserNum = (int)vecMacroUserID.size();
     int D2DPairNum = (int)mapD2DUserID.size();
@@ -521,7 +523,7 @@ void MacroCell::SetHypergraph() {
         }
     }
 
-    double threshold = 20;//dB 干扰阈值
+    double threshold = _threshold;//dB 干扰阈值
     double M2Dsir = 0;
     double D2Bsir = 0;
     //计算蜂窝用户和对D2DRx的干扰 计算D2DTx对基站的干扰 D2B M2D
@@ -563,7 +565,7 @@ void MacroCell::SetHypergraph() {
         for (auto D2DPair2 : mapD2DUserID) {
             int D2DTx2ID = D2DPair2.first;
             int D2DRx2ID = D2DPair2.second;
-            if (D2DRx1ID != D2DRx2ID) {
+            if (D2DRx1ID < D2DRx2ID) {
                 double S2SLinkloss = GetLinkloss(D2DTx2ID, D2DRx2ID, SystemDriveBus::iSlot);
                 double F2SLinkloss = GetLinkloss(D2DTx1ID, D2DRx2ID, SystemDriveBus::iSlot);
                 double F2FLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
@@ -602,7 +604,7 @@ void MacroCell::SetHypergraph() {
             for (auto D2DPair2 : mapD2DUserID) {
                 int D2DTx2ID = D2DPair2.first;
                 int D2DRx2ID = D2DPair2.second;
-                if (D2DRx1ID != D2DRx2ID) {
+                if (D2DRx1ID < D2DRx2ID) {
                     //M2FSsir
                     double M2MLinkloss = GetLinkloss(MacroUserID, 0, SystemDriveBus::iSlot);
                     double F2MLinkloss = GetLinkloss(D2DTx1ID, 0, SystemDriveBus::iSlot);
@@ -633,11 +635,12 @@ void MacroCell::SetHypergraph() {
                     S2MFsir = (D2DTxPower * S2SGain) / (MacroUserTxPower * M2SGain +D2DTxPower * F2SGain);
                     S2MFsir = 10 * log10(S2MFsir);//dB值
 
-                    if (M2FSsir > threshold && S2Fsir > threshold && S2MFsir > threshold) {
+                    if (M2FSsir > threshold && F2MSsir > threshold && S2MFsir > threshold) {
 //                    cout << "no edge" << endl;
                     } else {
 //                    cout << "set edge" << endl;
                         vector<int> vecNodes;
+                        vecNodes.push_back(MacroUserID - 1);
                         vecNodes.push_back(D2DTx1ID - 1);
                         vecNodes.push_back(D2DTx2ID - 1);
                         mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
@@ -660,7 +663,7 @@ void MacroCell::SetHypergraph() {
             for (auto D2DPair3 : mapD2DUserID) {
                 int D2DTx3ID = D2DPair3.first;
                 int D2DRx3ID = D2DPair3.second;
-                if (D2DRx1ID != D2DRx2ID && D2DRx1ID != D2DRx3ID && D2DRx2ID != D2DRx3ID) {
+                if (D2DRx1ID < D2DRx2ID && D2DRx1ID < D2DRx3ID && D2DRx2ID < D2DRx3ID) {
                     //F2STsir
                     double F2FLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
                     double S2FLinkloss = GetLinkloss(D2DTx2ID, D2DRx1ID, SystemDriveBus::iSlot);
@@ -689,7 +692,7 @@ void MacroCell::SetHypergraph() {
                     double F2TGain = pow(10, -F2TLinkloss / 10);//线性值
                     double S2TGain = pow(10, -S2TLinkloss / 10);//线性值
                     T2FSsir = (D2DTxPower * T2TGain) / (D2DTxPower * F2TGain +D2DTxPower * S2TGain);
-                    T2FSsir = 10 * log10(S2MFsir);//dB值
+                    T2FSsir = 10 * log10(T2FSsir);//dB值
 
                     if (F2STsir > threshold && S2FTsir > threshold && T2FSsir > threshold) {
 //                    cout << "no edge" << endl;
@@ -698,6 +701,7 @@ void MacroCell::SetHypergraph() {
                         vector<int> vecNodes;
                         vecNodes.push_back(D2DTx1ID - 1);
                         vecNodes.push_back(D2DTx2ID - 1);
+                        vecNodes.push_back(D2DTx3ID - 1);
                         mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
                         edgeID++;
                     }
@@ -724,14 +728,14 @@ void MacroCell::SetHypergraph() {
         hypergraph.push_back(vecNode2Edge);
     }
 
-    //输出图
-//    for (int i = 0; i < graph.size(); ++i) {
-//        for (int j = 0; j < graph[0].size(); ++j) {
-//            cout << graph[i][j] << ",";
+//    //输出图
+//    for (int i = 0; i < hypergraph.size(); ++i) {
+//        for (int j = 0; j < hypergraph[0].size(); ++j) {
+//            cout << hypergraph[i][j] << ",";
 //        }
 //        cout << endl;
 //    }
-    cout << endl;
+//    cout << endl;
 }
 
 ///////////////////////////SmallCell类///////////////////////////////
@@ -1288,7 +1292,7 @@ User::User(Interface * _D2DRxPtr)
     mainTxID = -1;
     D2DTxID = -1;
 
-    double MaxRadius = 50; //D2D发射机和接收机之间的最大间距
+    double MaxRadius = 20; //D2D发射机和接收机之间的最大间距
 
     double cellRadius = SystemDriveBus::system_shape.get_radius();
     double Rx2BSRadius = cellRadius + 1;//D2DRx相对宏基站的距离
