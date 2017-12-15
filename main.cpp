@@ -11,7 +11,7 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
-    if (1) {
+    if (0) {
         cout << "普通图：" << endl;
         cout << "*********************蜂窝用户***********************" << endl;
 
@@ -105,7 +105,7 @@ int main()
         double sumRatePerSlot;
         sumRatePerSlot = GetSumRate(SystemDriveBus::iSlot);
         cout << "********************************************" << endl;
-        cout << "第" << SystemDriveBus::iSlot << "个时隙的系统容量:" << sumRatePerSlot << endl;
+        cout << "第" << SystemDriveBus::iSlot << "个时隙的系统容量:" << sumRatePerSlot / 180000 / RBNUM << endl;
         cout << "********************************************" << endl;
 
         SystemDriveBus::iSlot++;
