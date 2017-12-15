@@ -50,7 +50,6 @@ int main()
 //            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
             cout << sinr << ";" << endl;
         }
-
         return 0;
     }
     SystemDriveBus::ULorDL = "UL"; //上行链路
