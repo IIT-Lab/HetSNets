@@ -358,8 +358,8 @@ void MacroCell::SetGraph(double _threshold) {
     double D2DTxPower = SystemDriveBus::ModeID2Par.at(4).get_power(); //dBm
     MacroUserTxPower = pow(10, (MacroUserTxPower - 30) / 10);//W
     D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
-    MacroUserTxPower = MacroUserTxPower / RBNUM;
-    D2DTxPower = D2DTxPower / RBNUM;
+//    MacroUserTxPower = MacroUserTxPower / RBNUM;
+//    D2DTxPower = D2DTxPower / RBNUM;
 
     //将所有代表宏蜂窝用户的节点相连
     int edgeID = 0;
@@ -506,8 +506,8 @@ void MacroCell::SetHypergraph(double _threshold) {
     double D2DTxPower = SystemDriveBus::ModeID2Par.at(4).get_power(); //dBm
     MacroUserTxPower = pow(10, (MacroUserTxPower - 30) / 10);//W
     D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
-    MacroUserTxPower = MacroUserTxPower / RBNUM;
-    D2DTxPower = D2DTxPower / RBNUM;
+//    MacroUserTxPower = MacroUserTxPower / RBNUM;
+//    D2DTxPower = D2DTxPower / RBNUM;
 
     //将所有代表宏蜂窝用户的节点相连
     int edgeID = 0;

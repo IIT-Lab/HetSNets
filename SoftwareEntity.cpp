@@ -47,7 +47,8 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
     int RBID, TxID = -1;
     //1个RB,12个连续的载波,12*15000=180000Hz
     double whiteNoise = -174;//-174dBm/Hz
-    double noiseFig = 1;
+    double noiseFig = 5;//dB
+    noiseFig = pow(10, -noiseFig / 10);//线性值
     thermalNoisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
     vecMainTxID.clear();
@@ -60,6 +61,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
     for (auto tempMap : mapMapLinklossPower) {
         RBID = tempMap.first;
         if (RBID > -1) {
+            totalPow = 0;
             for (auto tempLinklossPower : tempMap.second) {
                 txPow = tempLinklossPower.second.second;//dBm
                 txPow = pow(10, (txPow - 30) / 10);//W
@@ -75,7 +77,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                         cout << "RxID: " << dID << endl;
                         interferencePow = totalPow - signalPow;
                         sinr = signalPow / (interferencePow + thermalNoisePow); //线性
-                        rate = 20000000 / RBNUM * log2(1 + sinr);
+                        rate = 180000 * RBNUM * log2(1 + sinr);
                         sinr = 10 * log10(sinr);//dB值
                         cout << "SINR: " << sinr << endl;
                         cout << "rate: " << rate << endl;

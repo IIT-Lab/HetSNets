@@ -63,7 +63,7 @@ void channel::UpdateAllTxLinkLossTable()
 {
     mLinkLoss.clear();//每次更新前先清除掉容器
 
-    double fc = 2000;
+    double fc = 2300;
     double angle = 0;
     double angleTemp = 0;
     double angle3dB = 65;

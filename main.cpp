@@ -13,32 +13,42 @@ int main()
 {
     if (1) {
         cout << "普通图：" << endl;
+        cout << "*********************蜂窝用户***********************" << endl;
 
         double sinr = 0;
         for (int TxID = 1; TxID <= 30; ++TxID) {
             sinr = GetSinr(0, TxID);
-            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
         }
 
-        cout << "********************************************" << endl;
+        cout << "**********************D2D**********************" << endl;
 
         for (int TxID = 31; TxID <= 60; ++TxID) {
             sinr = GetSinr(0, TxID);
-            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
         }
 
         cout << "超图：" << endl;
+        cout << "*********************蜂窝用户***********************" << endl;
 
         for (int TxID = 1; TxID <= 30; ++TxID) {
             sinr = GetSinr(1, TxID);
-            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
         }
 
-        cout << "********************************************" << endl;
+        cout << "**********************D2D**********************" << endl;
 
         for (int TxID = 31; TxID <= 60; ++TxID) {
             sinr = GetSinr(1, TxID);
-            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
         }
 
         return 0;
