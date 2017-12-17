@@ -161,6 +161,7 @@ mode_par::mode_par()
             }
         } else cout << "执行失败" << endl;
     } else cout << "连接未建立" << endl;
+    mysql->destroyConnection();
 }
 
 mode_par::mode_par(string mode)
