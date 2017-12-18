@@ -86,8 +86,10 @@ int main()
 
     int slot = 2;
 
+    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
+
     //开始进行时隙循环
-    cout << "时隙循环开始" << endl;
+    cout << "*****************时隙循环开始*****************" << endl;
     while (SystemDriveBus::iSlot != slot)
     {
         i += 100;//为了使两次随机数变化更大一点

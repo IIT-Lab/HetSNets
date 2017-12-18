@@ -61,6 +61,7 @@ void channel::WorkSlot(default_random_engine dre)
 
 void channel::UpdateAllTxLinkLossTable()
 {
+    cout << "更新信道:" << iID << endl;
     mLinkLoss.clear();//每次更新前先清除掉容器
 
     double fc = 2300;

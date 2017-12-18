@@ -99,5 +99,27 @@ bool comhyperOrder(hyperNode* _node1, hyperNode* _node2);
 void graghColoring(map<int, node*> _mapNodeID2NodePtr, int _colorNum);
 void hypergraghColoring(map<int, hyperNode*> _mapNodeID2HyperNodePtr, int _colorNum);
 
+/********************************功能函数*********************************/
+
+/********************************macroUser类*********************************/
+class macroUser {
+public:
+    macroUser(int _uID, double _power, double _channelGain, double _cellRadius);
+    ~macroUser();
+
+private:
+    int uID;
+    double power; //宏蜂窝用户发射功率
+    double channelGain; //宏蜂窝用户到宏基站的信道增益
+    double cellRadius; //宏蜂窝半径
+    vector<double> SLARadius; //离散干扰区域半径
+};
+
+/********************************macroUser类*********************************/
+
+/********************************干扰区域超图着色*********************************/
+
+void SLAComputing(map<int, macroUser*> _mapID2MUEPtr); //干扰区域计算
+
 
 #endif //HETSNETS_GRAPHCOLORING_H

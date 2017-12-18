@@ -259,41 +259,7 @@ MacroCell::~MacroCell() {
 
 void MacroCell::Scheduler() {
     if (iPriority >= 30) { //接收优先级　上行链路
-        /********************************图构建*********************************/
-        SetVecMacroUserID();
-        SetMapD2DUserID();
-        double threshold = 20;
-        /********************************贪婪图着色*********************************/
-        map<int, hyperNode*> mapNodeID2HyperNodePtr;
-        if (SystemDriveBus::iSlot == 0) {
-            SetGraph(threshold);
-            int nodeNum = (int)graph.size();
-
-            for (int i = 0; i < nodeNum; ++i) {
-                hyperNode* hyperNodePtr = new hyperNode(i);
-                hyperNodePtr->initial(graph);
-                mapNodeID2HyperNodePtr.insert(pair<int, hyperNode*>(i, hyperNodePtr));
-            }
-
-            hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
-        }
-        /********************************贪婪图着色*********************************/
-
-        /********************************超图着色*********************************/
-        if (SystemDriveBus::iSlot == 1) {
-            SetHypergraph(threshold);
-            int nodeNum = (int)hypergraph.size();
-
-            for (int i = 0; i < nodeNum; ++i) {
-                hyperNode* hyperNodePtr = new hyperNode(i);
-                hyperNodePtr->initial(hypergraph);
-                mapNodeID2HyperNodePtr.insert(pair<int, hyperNode*>(i, hyperNodePtr));
-            }
-
-            hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
-        }
-        /********************************超图着色*********************************/
-
+        double cellRadius = SystemDriveBus::ModeID2Par.at(1).get_radius();
         int MacroUserNum = (int)vecMacroUserID.size();
         int D2DPairNum = (int)mapD2DUserID.size();
         double MacroUserTxPower = SystemDriveBus::ModeID2Par.at(1).get_power(); //dBm
@@ -304,6 +270,66 @@ void MacroCell::Scheduler() {
 //        D2DTxPower = D2DTxPower / RBNUM;//W
 //        MacroUserTxPower = 10 * log10(MacroUserTxPower) + 30;//dBm
 //        D2DTxPower = 10 * log10(D2DTxPower) + 30;//dBm
+
+        /********************************图构建*********************************/
+        SetVecMacroUserID();
+        SetMapD2DUserID();
+        double threshold = 20;
+        /********************************贪婪图着色*********************************/
+        map<int, hyperNode*> mapNodeID2HyperNodePtr;
+        if (SystemDriveBus::iSlot == 0) {
+            cout << "*****************图构建*****************" << endl;
+            SetGraph(threshold);
+            int nodeNum = (int)graph.size();
+
+            for (int i = 0; i < nodeNum; ++i) {
+                hyperNode* hyperNodePtr = new hyperNode(i);
+                hyperNodePtr->initial(graph);
+                mapNodeID2HyperNodePtr.insert(pair<int, hyperNode*>(i, hyperNodePtr));
+            }
+            cout << "*****************图着色*****************" << endl;
+            hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
+            cout << "*****************着色结束*****************" << endl;
+        }
+        /********************************贪婪图着色*********************************/
+
+        /********************************超图着色*********************************/
+        if (SystemDriveBus::iSlot == 1) {
+            cout << "*****************超图构建*****************" << endl;
+            SetHypergraph(threshold);
+            int nodeNum = (int)hypergraph.size();
+
+            for (int i = 0; i < nodeNum; ++i) {
+                hyperNode* hyperNodePtr = new hyperNode(i);
+                hyperNodePtr->initial(hypergraph);
+                mapNodeID2HyperNodePtr.insert(pair<int, hyperNode*>(i, hyperNodePtr));
+            }
+            cout << "*****************超图着色*****************" << endl;
+            hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
+            cout << "*****************着色结束*****************" << endl;
+        }
+        /********************************超图着色*********************************/
+
+        /********************************干扰区域超图着色*********************************/
+        if (SystemDriveBus::iSlot == -1) {
+            cout << "*****************干扰区域构建*****************" << endl;
+            map<int, macroUser*> mapID2MUEPtr;
+            for (int macroUserID : vecMacroUserID) {
+                double linkloss = GetLinkloss(macroUserID, 0, SystemDriveBus::iSlot);
+                double channelGain = pow(10, -linkloss / 10);//线性值
+                macroUser* macroUserPtr = new macroUser(macroUserID, MacroUserTxPower, channelGain, cellRadius);
+            }
+
+            SLAComputing(mapID2MUEPtr);
+
+            cout << "*****************超图构建*****************" << endl;
+
+            cout << "*****************干扰区域超图着色*****************" << endl;
+
+            cout << "*****************干扰区域着色结束*****************" << endl;
+        }
+        /********************************干扰区域超图着色*********************************/
+
         int TxID, RxID, RBID;
 
         for (auto temp : mapNodeID2HyperNodePtr) {
@@ -370,6 +396,7 @@ void MacroCell::SetGraph(double _threshold) {
                 vecNodes.push_back(MacroUserID1 - 1);//因为有一个宏小区基站　MacroUserID从1开始计数　所以导入节点vec时要减一
                 vecNodes.push_back(MacroUserID2 - 1);
                 mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                cout << "set edge: " << edgeID << endl;
                 edgeID++;
             }
         }
@@ -398,7 +425,7 @@ void MacroCell::SetGraph(double _threshold) {
             if (M2Dsir > threshold && D2Bsir > threshold) {
 //                cout << "no edge" << endl;
             } else {
-//                cout << "set edge" << endl;
+                cout << "set edge: " << edgeID << endl;
                 vector<int> vecNodes;
                 vecNodes.push_back(MacroUserID - 1);
                 vecNodes.push_back(D2DTxID - 1);
@@ -433,7 +460,7 @@ void MacroCell::SetGraph(double _threshold) {
                 if (F2Ssir > threshold && S2Fsir > threshold) {
 //                    cout << "no edge" << endl;
                 } else {
-//                    cout << "set edge " << D2DTx1ID << "," << D2DTx2ID << endl;
+                    cout << "set edge: " << edgeID << endl;
                     vector<int> vecNodes;
                     vecNodes.push_back(D2DTx1ID - 1);
                     vecNodes.push_back(D2DTx2ID - 1);
@@ -518,6 +545,7 @@ void MacroCell::SetHypergraph(double _threshold) {
                 vecNodes.push_back(MacroUserID1 - 1);//因为有一个宏小区基站　MacroUserID从1开始计数　所以导入节点vec时要减一
                 vecNodes.push_back(MacroUserID2 - 1);
                 mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                cout << "set edge: " << edgeID << endl;
                 edgeID++;
             }
         }
@@ -546,7 +574,7 @@ void MacroCell::SetHypergraph(double _threshold) {
             if (M2Dsir > threshold && D2Bsir > threshold) {
 //                cout << "no edge" << endl;
             } else {
-//                cout << "set edge" << endl;
+                cout << "set edge: " << edgeID << endl;
                 vector<int> vecNodes;
                 vecNodes.push_back(MacroUserID - 1);
                 vecNodes.push_back(D2DTxID - 1);
@@ -581,7 +609,7 @@ void MacroCell::SetHypergraph(double _threshold) {
                 if (F2Ssir > threshold && S2Fsir > threshold) {
 //                    cout << "no edge" << endl;
                 } else {
-//                    cout << "set edge" << endl;
+                    cout << "set edge: " << edgeID << endl;
                     vector<int> vecNodes;
                     vecNodes.push_back(D2DTx1ID - 1);
                     vecNodes.push_back(D2DTx2ID - 1);
@@ -638,7 +666,7 @@ void MacroCell::SetHypergraph(double _threshold) {
                     if (M2FSsir > threshold && F2MSsir > threshold && S2MFsir > threshold) {
 //                    cout << "no edge" << endl;
                     } else {
-//                    cout << "set edge" << endl;
+                        cout << "set edge: " << edgeID << endl;
                         vector<int> vecNodes;
                         vecNodes.push_back(MacroUserID - 1);
                         vecNodes.push_back(D2DTx1ID - 1);
@@ -697,7 +725,7 @@ void MacroCell::SetHypergraph(double _threshold) {
                     if (F2STsir > threshold && S2FTsir > threshold && T2FSsir > threshold) {
 //                    cout << "no edge" << endl;
                     } else {
-//                    cout << "set edge" << endl;
+                        cout << "set edge: " << edgeID << endl;
                         vector<int> vecNodes;
                         vecNodes.push_back(D2DTx1ID - 1);
                         vecNodes.push_back(D2DTx2ID - 1);

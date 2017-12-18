@@ -329,3 +329,22 @@ void hyperNode::setVecCandidateColor(int _colorNum, map<int, hyperNode *> _mapNo
 int hyperNode::getColor() const {
     return color;
 }
+
+/********************************macroUser类*********************************/
+
+macroUser::macroUser(int _uID, double _power, double _channelGain, double _cellRadius) {
+    uID = _uID;
+    power = _power;
+    channelGain = _channelGain;
+    cellRadius = _cellRadius;
+}
+
+macroUser::~macroUser() {
+
+}
+
+/********************************干扰区域超图着色*********************************/
+
+void SLAComputing(map<int, macroUser*> _mapID2MUEPtr) {
+
+}
