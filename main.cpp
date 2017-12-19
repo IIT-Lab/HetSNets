@@ -12,46 +12,83 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 int main()
 {
     if (0) {
+        double sinr = 0;
+        double rate = 0;
+        int macroUserNum = 10;
+        int D2DNum = 10;
+        int slotNum = 40;
+
         cout << "普通图：" << endl;
         cout << "*********************蜂窝用户***********************" << endl;
-
-        double sinr = 0;
-        for (int TxID = 1; TxID <= 30; ++TxID) {
-            sinr = GetSinr(0, TxID);
-            if (sinr == 0) continue;
+        for (int slot = 0; slot < slotNum / 2; slot++) {
+            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
 //            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-            cout << sinr << ";" << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
         }
-
         cout << "**********************D2D**********************" << endl;
-
-        for (int TxID = 31; TxID <= 60; ++TxID) {
-            sinr = GetSinr(0, TxID);
-            if (sinr == 0) continue;
+        for (int slot = 0; slot < slotNum / 2; slot++) {
+            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
 //            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-            cout << sinr << ";" << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
         }
 
         cout << "超图：" << endl;
         cout << "*********************蜂窝用户***********************" << endl;
-
-        for (int TxID = 1; TxID <= 30; ++TxID) {
-            sinr = GetSinr(1, TxID);
-            if (sinr == 0) continue;
+        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
 //            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-            cout << sinr << ";" << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
         }
-
         cout << "**********************D2D**********************" << endl;
-
-        for (int TxID = 31; TxID <= 60; ++TxID) {
-            sinr = GetSinr(1, TxID);
-            if (sinr == 0) continue;
+        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
 //            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-            cout << sinr << ";" << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
         }
+
         return 0;
     }
+
     SystemDriveBus::ULorDL = "UL"; //上行链路
 
     //实例化一个系统对象
@@ -84,7 +121,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 2;
+    int slot = 40;
 
     SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 
@@ -111,6 +148,17 @@ int main()
 
         SystemDriveBus::iSlot++;
     }
+
+//    double sumRate;
+//    sumRate = GetSumRate(0);
+//    cout << "********************************************" << endl;
+//    cout << "图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+//    cout << "********************************************" << endl;
+//
+//    sumRate = GetSumRate(1);
+//    cout << "********************************************" << endl;
+//    cout << "超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+//    cout << "********************************************" << endl;
 
     return 0;
 }

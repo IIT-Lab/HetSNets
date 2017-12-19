@@ -260,8 +260,6 @@ MacroCell::~MacroCell() {
 void MacroCell::Scheduler() {
     if (iPriority >= 30) { //接收优先级　上行链路
         double cellRadius = SystemDriveBus::ModeID2Par.at(1).get_radius();
-        int MacroUserNum = (int)vecMacroUserID.size();
-        int D2DPairNum = (int)mapD2DUserID.size();
         double MacroUserTxPower = SystemDriveBus::ModeID2Par.at(1).get_power(); //dBm
         double D2DTxPower = SystemDriveBus::ModeID2Par.at(4).get_power(); //dBm
 //        MacroUserTxPower = pow(10, (MacroUserTxPower - 30) / 10);//W
@@ -277,7 +275,7 @@ void MacroCell::Scheduler() {
         double threshold = 20;
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
-        if (SystemDriveBus::iSlot == 0) {
+        if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 20) {
             cout << "*****************图构建*****************" << endl;
             SetGraph(threshold);
             int nodeNum = (int)graph.size();
@@ -294,7 +292,7 @@ void MacroCell::Scheduler() {
         /********************************贪婪图着色*********************************/
 
         /********************************超图着色*********************************/
-        if (SystemDriveBus::iSlot == 1) {
+        if (SystemDriveBus::iSlot >= 20) {
             cout << "*****************超图构建*****************" << endl;
             SetHypergraph(threshold);
             int nodeNum = (int)hypergraph.size();
@@ -318,6 +316,7 @@ void MacroCell::Scheduler() {
                 double linkloss = GetLinkloss(macroUserID, 0, SystemDriveBus::iSlot);
                 double channelGain = pow(10, -linkloss / 10);//线性值
                 macroUser* macroUserPtr = new macroUser(macroUserID, MacroUserTxPower, channelGain, cellRadius);
+                mapID2MUEPtr.insert(pair<int, macroUser*>(macroUserID, macroUserPtr));
             }
 
             SLAComputing(mapID2MUEPtr);
@@ -329,6 +328,9 @@ void MacroCell::Scheduler() {
             cout << "*****************干扰区域着色结束*****************" << endl;
         }
         /********************************干扰区域超图着色*********************************/
+
+        int MacroUserNum = (int)vecMacroUserID.size();
+        int D2DPairNum = (int)mapD2DUserID.size();
 
         int TxID, RxID, RBID;
 

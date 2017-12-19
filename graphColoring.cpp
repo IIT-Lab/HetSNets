@@ -343,8 +343,15 @@ macroUser::~macroUser() {
 
 }
 
+void macroUser::SetSLARadius() {
+    double targetSinr = 10; //dB
+
+}
+
 /********************************干扰区域超图着色*********************************/
 
 void SLAComputing(map<int, macroUser*> _mapID2MUEPtr) {
-
+    for (auto temp : _mapID2MUEPtr) {
+        temp.second->SetSLARadius(); //计算每个宏蜂窝用户的干扰区域半径
+    }
 }

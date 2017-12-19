@@ -106,6 +106,7 @@ class macroUser {
 public:
     macroUser(int _uID, double _power, double _channelGain, double _cellRadius);
     ~macroUser();
+    void SetSLARadius(); //计算干扰区域半径
 
 private:
     int uID;
