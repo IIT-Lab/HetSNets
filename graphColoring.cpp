@@ -332,11 +332,13 @@ int hyperNode::getColor() const {
 
 /********************************macroUser类*********************************/
 
-macroUser::macroUser(int _uID, double _power, double _channelGain, double _cellRadius) {
+macroUser::macroUser(int _uID, double _power, double _D2DTxPower, double _channelGain, double _cellRadius) {
     uID = _uID;
     power = _power;
+    D2DTxPower = _D2DTxPower;
     channelGain = _channelGain;
     cellRadius = _cellRadius;
+    color = -1;
 }
 
 macroUser::~macroUser() {
@@ -345,13 +347,81 @@ macroUser::~macroUser() {
 
 void macroUser::SetSLARadius() {
     double targetSinr = 10; //dB
+    targetSinr = pow(10, targetSinr / 10); //线性值
+    double targetOutageProbability = 0.01; //目标中断概率
+    double PLExponent = 7;
 
+    //1个RB,12个连续的载波,12*15000=180000Hz
+    double whiteNoise = -174;//-174dBm/Hz
+    double noiseFig = 5;//dB
+    noiseFig = pow(10, noiseFig / 10);//线性值
+    double noisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
+
+    double pathLoss_0 = -10 * log10(targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow));//dB
+    pathLoss_0 = pow(10, -pathLoss_0 / 10);//线性值
+    double d_0 = pow(1 / pathLoss_0, 1.0 / PLExponent);
+
+    if (d_0 > cellRadius) { //d_0 大于小区半径
+        d_0 = 500;
+        SLARadius.push_back(d_0);
+    } else {
+        SLARadius.push_back(d_0);
+    }
 }
+
+void macroUser::SetColor(int _colorID) {
+    color = _colorID;
+}
+
+/********************************macroUser类*********************************/
 
 /********************************干扰区域超图着色*********************************/
 
-void SLAComputing(map<int, macroUser*> _mapID2MUEPtr) {
+void SLAComputing(map<int, macroUser*> &_mapID2MUEPtr) {
     for (auto temp : _mapID2MUEPtr) {
         temp.second->SetSLARadius(); //计算每个宏蜂窝用户的干扰区域半径
     }
+}
+
+void macroUserColoring(map<int, macroUser *> &_mapID2MUEPtr, int _colorNum) {
+    int colorID = 0;
+    for (auto temp : _mapID2MUEPtr) {
+        if (colorID < _colorNum) {
+            temp.second->SetColor(colorID);
+            colorID++;
+        } else {
+            cout << "error!!!" << endl;
+        }
+
+    }
+}
+
+void SetD2DPair(map<int, macroUser *> _mapID2MUEPtr, map<int, D2DPair *> &_mapID2D2DPairPtr) {
+
+}
+
+void SetD2DHypergraph(map<int, D2DPair*> mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph) {
+
+}
+
+/********************************D2DUser类*********************************/
+
+D2DPair::D2DPair(int _ID, int _TxID, int _RxID) {
+    ID = _ID;
+    TxID = _TxID;
+    RxID = _RxID;
+}
+
+D2DPair::~D2DPair() {
+
+}
+
+void D2DPair::SetColor(int _colorID) {
+    color = _colorID;
+}
+
+void D2DPair::initial(double _power, double _dXPoint, double _dYPoint) {
+    power = _power;
+    dXPoint = _dXPoint;
+    dYPoint = _dYPoint;
 }

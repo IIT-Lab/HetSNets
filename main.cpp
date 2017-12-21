@@ -14,9 +14,9 @@ int main()
     if (0) {
         double sinr = 0;
         double rate = 0;
-        int macroUserNum = 10;
-        int D2DNum = 10;
-        int slotNum = 40;
+        int macroUserNum = 20;
+        int D2DNum = 20;
+        int slotNum = 100;
 
         cout << "普通图：" << endl;
         cout << "*********************蜂窝用户***********************" << endl;
@@ -121,7 +121,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 40;
+    int slot = 0;
 
     SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 

@@ -74,7 +74,7 @@ public:
     void setVecCandidateColor(int _colorNum, map<int, hyperNode *> _mapNodeID2HyperNodePtr);
 
 private:
-    int ID; //编号 从-开始
+    int ID; //编号 从0开始
     int degree; //度
     int color; //节点的颜色
     int order; //着色顺序 从-开始
@@ -104,23 +104,55 @@ void hypergraghColoring(map<int, hyperNode*> _mapNodeID2HyperNodePtr, int _color
 /********************************macroUser类*********************************/
 class macroUser {
 public:
-    macroUser(int _uID, double _power, double _channelGain, double _cellRadius);
+    macroUser(int _uID, double _power, double _D2DTxPower, double _channelGain, double _cellRadius);
     ~macroUser();
     void SetSLARadius(); //计算干扰区域半径
+    void SetColor(int _colorID);
 
 private:
     int uID;
     double power; //宏蜂窝用户发射功率
+    double D2DTxPower; //D2D用户发射功率
     double channelGain; //宏蜂窝用户到宏基站的信道增益
     double cellRadius; //宏蜂窝半径
+    int color; //节点的颜色
     vector<double> SLARadius; //离散干扰区域半径
+};
+
+/********************************macroUser类*********************************/
+
+/********************************D2DPair*********************************/
+class D2DPair {
+public:
+    D2DPair(int _ID, int _TxID, int _RxID);
+    ~D2DPair();
+    void initial(double _power, double _dXPoint, double _dYPoint);
+    void SetColor(int _colorID);
+
+private:
+    int ID; //编号 从0开始
+    int TxID;
+    int RxID;
+    double power; //D2D用户发射功率
+    double dXPoint; //D2DTx的坐标
+    double dYPoint; //D2DTx的坐标
+
+    int degree; //度
+    int color; //节点的颜色
+    vector<int> vecCandidateColor; //节点候选颜色集
 };
 
 /********************************macroUser类*********************************/
 
 /********************************干扰区域超图着色*********************************/
 
-void SLAComputing(map<int, macroUser*> _mapID2MUEPtr); //干扰区域计算
+void SLAComputing(map<int, macroUser*> &_mapID2MUEPtr); //干扰区域计算
+
+void macroUserColoring(map<int, macroUser*> &_mapID2MUEPtr, int _colorNum); //给蜂窝用户着色
+
+void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr);
+
+void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph);
 
 
 #endif //HETSNETS_GRAPHCOLORING_H

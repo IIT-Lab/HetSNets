@@ -48,7 +48,7 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
     //1个RB,12个连续的载波,12*15000=180000Hz
     double whiteNoise = -174;//-174dBm/Hz
     double noiseFig = 5;//dB
-    noiseFig = pow(10, -noiseFig / 10);//线性值
+    noiseFig = pow(10, noiseFig / 10);//线性值
     thermalNoisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
     vecMainTxID.clear();
