@@ -330,7 +330,7 @@ void MacroCell::Scheduler() {
             int D2DPairID = 0;
             for (auto temp : mapD2DUserID) {
                 D2DPair* D2DPairPtr = new D2DPair(D2DPairID, temp.first, temp.second);
-                //初始化initial
+                //初始化initial 添加用户发射功率和坐标
                 int D2DTxID = temp.first;
                 User * D2DTxPtr = dynamic_cast<User *>(SystemDriveBus::ID2PtrBus.at(D2DTxID));
                 double dXPoint = D2DTxPtr->getDXPoint();
