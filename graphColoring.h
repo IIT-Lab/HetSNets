@@ -151,6 +151,16 @@ public:
 
     int getDegree() const;
 
+    void addEdgeID(int _edgeID);
+
+    void addEdgeID2NodeID(int _edgeID, vector<int> _vecNodeID);
+
+    void addColorID2EdgeID(int _colorID, vector<int> _vecEdgeID);
+
+    const vector<int> &getVecEdgeID() const;
+
+    const map<int, vector<int>> &getMapEdgeID2NodeID() const;
+
 private:
     int ID; //编号 从0开始
     int TxID;
@@ -162,6 +172,9 @@ private:
     int degree; //度
     int color; //节点的颜色
     vector<int> vecCandidateColor; //节点候选颜色集
+    vector<int> vecEdgeID; //相邻边集
+    map<int, vector<int>> mapColorID2EdgeID; //颜色ID——相邻边集
+    map<int, vector<int>> mapEdgeID2NodeID; //边ID——相邻节点集
 };
 
 /********************************macroUser类*********************************/
