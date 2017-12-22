@@ -350,11 +350,13 @@ void MacroCell::Scheduler() {
             SetD2DHypergraph(mapID2D2DPairPtr, D2DHypergraph);
 
             cout << "*****************D2D超图着色*****************" << endl;
+            D2DHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM);
 
             cout << "*****************D2D着色结束*****************" << endl;
         }
         /********************************干扰区域超图着色*********************************/
 
+        /********************************资源分配*********************************/
         int MacroUserNum = (int)vecMacroUserID.size();
         int D2DPairNum = (int)mapD2DUserID.size();
 
@@ -738,7 +740,7 @@ void MacroCell::SetHypergraph(double _threshold) {
                     double F2SGain = pow(10, -F2SLinkloss / 10);//线性值
                     double T2SGain = pow(10, -T2SLinkloss / 10);//线性值
                     S2FTsir = (D2DTxPower * S2SGain) / (D2DTxPower * T2SGain +D2DTxPower * F2SGain);
-                    S2FTsir = 10 * log10(S2MFsir);//dB值
+                    S2FTsir = 10 * log10(S2FTsir);//dB值
 
                     //T2FSsir
                     double T2TLinkloss = GetLinkloss(D2DTx3ID, D2DRx3ID, SystemDriveBus::iSlot);

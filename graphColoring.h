@@ -133,10 +133,23 @@ public:
     void initial(double _power, double _dXPoint, double _dYPoint);
     void SetColor(int _colorID); //给 D2D pair 分配颜色
     void addCandidateColor(int _colorID); //将候选颜色加入候选颜色集
+    void setDegree(int degree);
 
     double getDXPoint() const;
 
     double getDYPoint() const;
+
+    double getPower() const;
+
+    int getID() const;
+
+    int getTxID() const;
+
+    int getRxID() const;
+
+    const vector<int> &getVecCandidateColor() const;
+
+    int getDegree() const;
 
 private:
     int ID; //编号 从0开始
@@ -161,7 +174,10 @@ void macroUserColoring(map<int, macroUser*> &_mapID2MUEPtr, int _colorNum); //�
 
 void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr, int _colorNum);
 
-void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph);
+void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph);
 
+void D2DHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum);
+
+bool comD2DDegree(D2DPair* _D2DPair1, D2DPair* _D2DPair2);
 
 #endif //HETSNETS_GRAPHCOLORING_H

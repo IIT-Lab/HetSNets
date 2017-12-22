@@ -5,6 +5,8 @@
 
 #include "graphColoring.h"
 #include "Mymath.h"
+#include "MySQLManager.h"
+#include "SystemDriveBus.h"
 
 /********************************node类*********************************/
 
@@ -429,8 +431,204 @@ void SetD2DPair(map<int, macroUser *> _mapID2MUEPtr, map<int, D2DPair *> &_mapID
     }
 }
 
-void SetD2DHypergraph(map<int, D2DPair*> mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph) {
+void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph) {
+    int nodeNum = (int)_mapID2D2DPairPtr.size();
+    double D2DTxPower = _mapID2D2DPairPtr.at(0)->getPower();
+    double threshold = 20; //dB
+    int edgeID = 0;
 
+    map<int, vector<int>> mapEdgeVecNodes;//map的键是边序号　vector储存对应的节点号
+
+    //普通边
+    double F2Ssir = 0;
+    double S2Fsir = 0;
+    //计算D2D pair1 First 和　D2D pair2 Second 之间的干扰
+    for (auto D2DPair1 : _mapID2D2DPairPtr) {
+        int D2DTx1ID = D2DPair1.second->getTxID();
+        int D2DRx1ID = D2DPair1.second->getRxID();
+        for (auto D2DPair2 : _mapID2D2DPairPtr) {
+            if (D2DPair1.first < D2DPair2.first) { //避免重复计算
+                int D2DTx2ID = D2DPair2.second->getTxID();
+                int D2DRx2ID = D2DPair2.second->getRxID();
+                double S2SLinkloss = GetLinkloss(D2DTx2ID, D2DRx2ID, SystemDriveBus::iSlot);
+                double F2SLinkloss = GetLinkloss(D2DTx1ID, D2DRx2ID, SystemDriveBus::iSlot);
+                double F2FLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
+                double S2FLinkloss = GetLinkloss(D2DTx2ID, D2DRx1ID, SystemDriveBus::iSlot);
+                double S2SGain = pow(10, -S2SLinkloss / 10);//线性值
+                double F2SGain = pow(10, -F2SLinkloss / 10);//线性值
+                double F2FGain = pow(10, -F2FLinkloss / 10);//线性值
+                double S2FGain = pow(10, -S2FLinkloss / 10);//线性值
+                F2Ssir = (D2DTxPower * F2FGain) / (D2DTxPower * S2FGain);
+                F2Ssir = 10 * log10(F2Ssir);//dB值
+                S2Fsir = (D2DTxPower * S2SGain) / (D2DTxPower * F2SGain);
+                S2Fsir = 10 * log10(S2Fsir);//dB值
+                if (F2Ssir > threshold && S2Fsir > threshold) {
+//                    cout << "no edge" << endl;
+                } else {
+                    cout << "set edge: " << edgeID << endl;
+                    vector<int> vecNodes;
+                    vecNodes.push_back(D2DPair1.first);
+                    vecNodes.push_back(D2DPair2.first);
+                    mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                    edgeID++;
+                }
+            }
+        }
+    }
+
+    //超边
+    //3个D2D pair First Second Third
+    double F2STsir = 0;
+    double S2FTsir = 0;
+    double T2FSsir = 0;
+    for (auto D2DPair1 : _mapID2D2DPairPtr) {
+        int D2DTx1ID = D2DPair1.second->getTxID();
+        int D2DRx1ID = D2DPair1.second->getRxID();
+        for (auto D2DPair2 : _mapID2D2DPairPtr) {
+            int D2DTx2ID = D2DPair2.second->getTxID();
+            int D2DRx2ID = D2DPair2.second->getRxID();
+            for (auto D2DPair3 : _mapID2D2DPairPtr) {
+                int D2DTx3ID = D2DPair3.second->getTxID();
+                int D2DRx3ID = D2DPair3.second->getRxID();
+                if (D2DPair1.first < D2DPair2.first && D2DPair1.first < D2DPair3.first && D2DPair2.first < D2DPair3.first) {
+                    //F2STsir
+                    double F2FLinkloss = GetLinkloss(D2DTx1ID, D2DRx1ID, SystemDriveBus::iSlot);
+                    double S2FLinkloss = GetLinkloss(D2DTx2ID, D2DRx1ID, SystemDriveBus::iSlot);
+                    double T2FLinkloss = GetLinkloss(D2DTx3ID, D2DRx1ID, SystemDriveBus::iSlot);
+                    double F2FGain = pow(10, -F2FLinkloss / 10);//线性值
+                    double S2FGain = pow(10, -S2FLinkloss / 10);//线性值
+                    double T2FGain = pow(10, -T2FLinkloss / 10);//线性值
+                    F2STsir = (D2DTxPower * F2FGain) / (D2DTxPower * T2FGain +D2DTxPower * S2FGain);
+                    F2STsir = 10 * log10(F2STsir);//dB值
+
+                    //S2FTsir
+                    double S2SLinkloss = GetLinkloss(D2DTx2ID, D2DRx2ID, SystemDriveBus::iSlot);
+                    double F2SLinkloss = GetLinkloss(D2DTx1ID, D2DRx2ID, SystemDriveBus::iSlot);
+                    double T2SLinkloss = GetLinkloss(D2DTx3ID, D2DRx2ID, SystemDriveBus::iSlot);
+                    double S2SGain = pow(10, -S2SLinkloss / 10);//线性值
+                    double F2SGain = pow(10, -F2SLinkloss / 10);//线性值
+                    double T2SGain = pow(10, -T2SLinkloss / 10);//线性值
+                    S2FTsir = (D2DTxPower * S2SGain) / (D2DTxPower * T2SGain +D2DTxPower * F2SGain);
+                    S2FTsir = 10 * log10(S2FTsir);//dB值
+
+                    //T2FSsir
+                    double T2TLinkloss = GetLinkloss(D2DTx3ID, D2DRx3ID, SystemDriveBus::iSlot);
+                    double F2TLinkloss = GetLinkloss(D2DTx1ID, D2DRx3ID, SystemDriveBus::iSlot);
+                    double S2TLinkloss = GetLinkloss(D2DTx2ID, D2DRx3ID, SystemDriveBus::iSlot);
+                    double T2TGain = pow(10, -T2TLinkloss / 10);//线性值
+                    double F2TGain = pow(10, -F2TLinkloss / 10);//线性值
+                    double S2TGain = pow(10, -S2TLinkloss / 10);//线性值
+                    T2FSsir = (D2DTxPower * T2TGain) / (D2DTxPower * F2TGain +D2DTxPower * S2TGain);
+                    T2FSsir = 10 * log10(T2FSsir);//dB值
+
+                    if (F2STsir > threshold && S2FTsir > threshold && T2FSsir > threshold) {
+//                    cout << "no edge" << endl;
+                    } else {
+                        cout << "set edge: " << edgeID << endl;
+                        vector<int> vecNodes;
+                        vecNodes.push_back(D2DPair1.first);
+                        vecNodes.push_back(D2DPair2.first);
+                        vecNodes.push_back(D2DPair3.first);
+                        mapEdgeVecNodes.insert(pair<int, vector<int>>(edgeID, vecNodes));
+                        edgeID++;
+                    }
+                }
+            }
+        }
+    }
+
+    //写入incidence Matrix
+    for (int nodeID = 0; nodeID < nodeNum; ++nodeID) {
+        vector<int> vecNode2Edge;
+        for (auto temp : mapEdgeVecNodes) {
+//            edgeID = temp.first;
+            bool haveEdge = false;
+            for (auto tempNodeID : temp.second) {
+                if (nodeID == tempNodeID) haveEdge = true;
+            }
+            if (haveEdge) {
+                vecNode2Edge.push_back(1);
+            } else {
+                vecNode2Edge.push_back(0);
+            }
+        }
+        _D2DHypergraph.push_back(vecNode2Edge);
+    }
+
+    //输出图
+    for (int i = 0; i < _D2DHypergraph.size(); ++i) {
+        for (int j = 0; j < _D2DHypergraph[0].size(); ++j) {
+            cout << _D2DHypergraph[i][j] << ",";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum) {
+    for (int colorID = 0; colorID < _colorNum; ++colorID) { //遍历系统候选颜色集
+        //构建关于某个颜色的子图
+        map<int, D2DPair *> mapSubGraphOneColor; //存储子图中包含的 D2D pair
+        vector<D2DPair *> vecSubGraphOneColor; //存储子图中包含的 D2D pair
+        vector<int> vecSubGraphD2DPairID; //存储子图中包含的 D2D pair ID
+        for (auto tempD2DPair : _mapID2D2DPairPtr) {
+            vector<int> vecCandidateColor = tempD2DPair.second->getVecCandidateColor();
+            for (int candidateColorID : vecCandidateColor) {
+                if (candidateColorID == colorID) {
+                    mapSubGraphOneColor.insert(tempD2DPair);
+                    vecSubGraphOneColor.push_back(tempD2DPair.second);
+                    vecSubGraphD2DPairID.push_back(tempD2DPair.first);
+                }
+            }
+        }
+
+        //计算所有节点关于某种颜色的节点度
+        int nodeNum = (int)_D2DHypergraph.size();
+        int edgeNum = (int)_D2DHypergraph[0].size();
+        for (int D2DPairID : vecSubGraphD2DPairID) {
+            //将某个节点子图中的所有边的ID存入vecEdgeID
+            vector<int> vecEdgeID;
+            map<int, vector<int>> mapEdgeID2D2DPairID;
+            for (int edgeID = 0; edgeID < edgeNum; edgeID++) { //遍历某个节点的所有边
+                if (_D2DHypergraph[D2DPairID][edgeID]) { //如果边存在
+                    vector<int> vecD2DPairID; //某个边连接的所有节点的ID
+                    for (int nodeID = 0; nodeID < nodeNum; ++nodeID) {
+                        if (_D2DHypergraph[nodeID][edgeID]) {
+                            vecD2DPairID.push_back(nodeID);
+                        }
+                    }
+                    //检查边连接的节点是不是都属于子图
+                    vector<int> vecPushEdgeID;
+                    int vecSize = 0;
+                    for (int nodeID : vecD2DPairID) {
+                        vecSize++;
+                        for (int _D2DPairID : vecSubGraphD2DPairID) {
+                            if (nodeID == _D2DPairID) vecPushEdgeID.push_back(1);
+                        }
+                        if (vecPushEdgeID.size() < vecSize) vecPushEdgeID.push_back(0);
+                    }
+                    bool pushEdgeID = true;
+                    for (int temp : vecPushEdgeID) {
+                        if (!temp) pushEdgeID = false;
+                    }
+                    if (pushEdgeID) vecEdgeID.push_back(edgeID);
+                }
+            }
+            //更新节点度
+            int degree = (int)vecEdgeID.size();
+            mapSubGraphOneColor.at(D2DPairID)->setDegree(degree);
+        }
+
+        //按节点度排序
+        sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DDegree); //按度从高到低排序
+
+        //给着色序号最先的节点着色
+        vecSubGraphOneColor[0]->SetColor(colorID);
+    }
+}
+
+bool comD2DDegree(D2DPair *_D2DPair1, D2DPair *_D2DPair2) {
+    return _D2DPair1->getDegree() > _D2DPair2->getDegree();
 }
 
 /********************************D2DUser类*********************************/
@@ -467,4 +665,32 @@ double D2DPair::getDYPoint() const {
 
 void D2DPair::addCandidateColor(int _colorID) {
     vecCandidateColor.push_back(_colorID);
+}
+
+double D2DPair::getPower() const {
+    return power;
+}
+
+int D2DPair::getTxID() const {
+    return TxID;
+}
+
+int D2DPair::getRxID() const {
+    return RxID;
+}
+
+int D2DPair::getID() const {
+    return ID;
+}
+
+const vector<int> &D2DPair::getVecCandidateColor() const {
+    return vecCandidateColor;
+}
+
+void D2DPair::setDegree(int degree) {
+    D2DPair::degree = degree;
+}
+
+int D2DPair::getDegree() const {
+    return degree;
 }
