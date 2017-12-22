@@ -4,6 +4,7 @@
 
 
 #include "graphColoring.h"
+#include "Mymath.h"
 
 /********************************node类*********************************/
 
@@ -373,6 +374,14 @@ void macroUser::SetColor(int _colorID) {
     color = _colorID;
 }
 
+const vector<double> &macroUser::getSLARadius() const {
+    return SLARadius;
+}
+
+int macroUser::getColor() const {
+    return color;
+}
+
 /********************************macroUser类*********************************/
 
 /********************************干扰区域超图着色*********************************/
@@ -392,12 +401,32 @@ void macroUserColoring(map<int, macroUser *> &_mapID2MUEPtr, int _colorNum) {
         } else {
             cout << "error!!!" << endl;
         }
-
     }
 }
 
-void SetD2DPair(map<int, macroUser *> _mapID2MUEPtr, map<int, D2DPair *> &_mapID2D2DPairPtr) {
-
+void SetD2DPair(map<int, macroUser *> _mapID2MUEPtr, map<int, D2DPair *> &_mapID2D2DPairPtr, int _colorNum) {
+    //根据干扰区域初始化 D2D pair 的候选颜色集
+    for (auto tempD2DPair : _mapID2D2DPairPtr) {
+        double dXPoint = tempD2DPair.second->getDXPoint();
+        double dYPoint = tempD2DPair.second->getDYPoint();
+        double D2DTx2BSRadius = getDistance(dXPoint, dYPoint, 0, 0);
+        vector<int> vecNoColor;//存储不能被着色的颜色序号
+        //更新 vecNoColor
+        for (auto tempMUE : _mapID2MUEPtr) {
+            vector<double> SLARadius = tempMUE.second->getSLARadius();
+            if (D2DTx2BSRadius < SLARadius[0]) { //D2D pair 在干扰保护区域范围内 不能着色
+                vecNoColor.push_back(tempMUE.second->getColor());
+            }
+        }
+        //更新候选颜色集
+        for (int colorID = 0; colorID < _colorNum; ++colorID) {
+            bool colorOrNot = true;
+            for (int noColorID : vecNoColor) {
+                if (colorID == noColorID) colorOrNot = false;
+            }
+            if (colorOrNot) tempD2DPair.second->addCandidateColor(colorID);
+        }
+    }
 }
 
 void SetD2DHypergraph(map<int, D2DPair*> mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph) {
@@ -424,4 +453,18 @@ void D2DPair::initial(double _power, double _dXPoint, double _dYPoint) {
     power = _power;
     dXPoint = _dXPoint;
     dYPoint = _dYPoint;
+    degree = -1;
+    color = -1;
+}
+
+double D2DPair::getDXPoint() const {
+    return dXPoint;
+}
+
+double D2DPair::getDYPoint() const {
+    return dYPoint;
+}
+
+void D2DPair::addCandidateColor(int _colorID) {
+    vecCandidateColor.push_back(_colorID);
 }

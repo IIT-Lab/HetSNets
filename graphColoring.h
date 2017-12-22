@@ -109,6 +109,10 @@ public:
     void SetSLARadius(); //计算干扰区域半径
     void SetColor(int _colorID);
 
+    const vector<double> &getSLARadius() const;
+
+    int getColor() const;
+
 private:
     int uID;
     double power; //宏蜂窝用户发射功率
@@ -127,7 +131,12 @@ public:
     D2DPair(int _ID, int _TxID, int _RxID);
     ~D2DPair();
     void initial(double _power, double _dXPoint, double _dYPoint);
-    void SetColor(int _colorID);
+    void SetColor(int _colorID); //给 D2D pair 分配颜色
+    void addCandidateColor(int _colorID); //将候选颜色加入候选颜色集
+
+    double getDXPoint() const;
+
+    double getDYPoint() const;
 
 private:
     int ID; //编号 从0开始
@@ -150,7 +159,7 @@ void SLAComputing(map<int, macroUser*> &_mapID2MUEPtr); //干扰区域计算
 
 void macroUserColoring(map<int, macroUser*> &_mapID2MUEPtr, int _colorNum); //给蜂窝用户着色
 
-void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr);
+void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr, int _colorNum);
 
 void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &D2DHypergraph);
 

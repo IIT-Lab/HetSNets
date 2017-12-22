@@ -327,6 +327,8 @@ void MacroCell::Scheduler() {
             cout << "*****************超图构建*****************" << endl;
             map<int, D2DPair*> mapID2D2DPairPtr;
             vector<vector<int>> D2DHypergraph; //表示超图的矩阵incidence Matrix
+
+            //构建 D2D pair ID 对 D2D pair 指针登记表
             int D2DPairID = 0;
             for (auto temp : mapD2DUserID) {
                 D2DPair* D2DPairPtr = new D2DPair(D2DPairID, temp.first, temp.second);
@@ -340,6 +342,12 @@ void MacroCell::Scheduler() {
                 mapID2D2DPairPtr.insert(pair<int, D2DPair*>(D2DPairID, D2DPairPtr));
                 D2DPairID++;
             }
+
+            //根据干扰区域初始化 D2D pair 的候选颜色集
+            SetD2DPair(mapID2MUEPtr, mapID2D2DPairPtr, RBNUM);
+
+            //构造以 D2D pair 为节点的超图
+            SetD2DHypergraph(mapID2D2DPairPtr, D2DHypergraph);
 
             cout << "*****************D2D超图着色*****************" << endl;
 
