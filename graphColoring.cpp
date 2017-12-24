@@ -360,9 +360,17 @@ void macroUser::SetSLARadius() {
     noiseFig = pow(10, noiseFig / 10);//线性值
     double noisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
-    double pathLoss_0 = -10 * log10(targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow));//dB
-    pathLoss_0 = pow(10, -pathLoss_0 / 10);//线性值
-    double d_0 = pow(1 / pathLoss_0, 1.0 / PLExponent);
+//    double pathLoss_0 = -10 * log10(targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow));//dB
+//    pathLoss_0 = pow(10, -pathLoss_0 / 10);//线性值
+    double pathLoss_0 = targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow);//线性
+    double d_0; //干扰保护区域半径
+    if (pathLoss_0 < 0) {
+        d_0 = cellRadius;
+    } else {
+        d_0 = pow(1 / pathLoss_0, 1.0 / PLExponent);
+    }
+
+    cout << "macroUser: " << uID << " 干扰保护区域半径：" << d_0 << endl;
 
     if (d_0 > cellRadius) { //d_0 大于小区半径
         d_0 = 500;
@@ -374,6 +382,7 @@ void macroUser::SetSLARadius() {
 
 void macroUser::SetColor(int _colorID) {
     color = _colorID;
+    cout << "macroUser: " << uID << ", 着色：" << color << endl;
 }
 
 const vector<double> &macroUser::getSLARadius() const {
@@ -382,6 +391,14 @@ const vector<double> &macroUser::getSLARadius() const {
 
 int macroUser::getColor() const {
     return color;
+}
+
+int macroUser::getUID() const {
+    return uID;
+}
+
+double macroUser::getPower() const {
+    return power;
 }
 
 /********************************macroUser类*********************************/
@@ -571,14 +588,14 @@ void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> 
         _D2DHypergraph.push_back(vecNode2Edge);
     }
 
-    //输出图
-    for (int i = 0; i < _D2DHypergraph.size(); ++i) {
-        for (int j = 0; j < _D2DHypergraph[0].size(); ++j) {
-            cout << _D2DHypergraph[i][j] << ",";
-        }
-        cout << endl;
-    }
-    cout << endl;
+//    //输出图
+//    for (int i = 0; i < _D2DHypergraph.size(); ++i) {
+//        for (int j = 0; j < _D2DHypergraph[0].size(); ++j) {
+//            cout << _D2DHypergraph[i][j] << ",";
+//        }
+//        cout << endl;
+//    }
+//    cout << endl;
 
     //更新 D2D pair
 
@@ -589,78 +606,79 @@ void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector
         //构建关于某个颜色的子图
         map<int, D2DPair *> mapSubGraphOneColor; //存储子图中包含的 D2D pair
         vector<D2DPair *> vecSubGraphOneColor; //存储子图中包含的 D2D pair
-        vector<int> vecSubGraphD2DPairID; //存储子图中包含的 D2D pair ID
         for (auto tempD2DPair : _mapID2D2DPairPtr) {
             vector<int> vecCandidateColor = tempD2DPair.second->getVecCandidateColor();
             for (int candidateColorID : vecCandidateColor) {
                 if (candidateColorID == colorID) {
                     mapSubGraphOneColor.insert(tempD2DPair);
                     vecSubGraphOneColor.push_back(tempD2DPair.second);
-                    vecSubGraphD2DPairID.push_back(tempD2DPair.first);
                 }
             }
         }
 
-        //更新 D2D pair 关于某个颜色的子图
-        for (auto nodePtr : vecSubGraphOneColor) {
-            //将某个节点子图中的所有边的ID存入vecEdgeID
-            vector<int> vecEdgeID;
-            for (auto temp : nodePtr->getMapEdgeID2NodeID()) { //遍历节点的所有边 筛选出属于子图的边
-                int edgeID = temp.first;
-                //判断边对应节点的候选颜色集是否有该颜色
-                bool pushEdgeID = true;
-                for (auto nodeID : temp.second) {
-                    if (mapSubGraphOneColor.find(nodeID) == mapSubGraphOneColor.end()) { //节点不存在
-                        pushEdgeID = false;
-                    }
-                }
-                if (pushEdgeID) vecEdgeID.push_back(edgeID);
-            }
-            nodePtr->addColorID2EdgeID(colorID, vecEdgeID);
-        }
-
-        //计算所有节点关于某种颜色的节点度
-        int nodeNum = (int)_D2DHypergraph.size();
-        int edgeNum = (int)_D2DHypergraph[0].size();
-        for (int D2DPairID : vecSubGraphD2DPairID) {
-            //将某个节点子图中的所有边的ID存入vecEdgeID
-            vector<int> vecEdgeID;
-            map<int, vector<int>> mapEdgeID2D2DPairID;
-            for (int edgeID = 0; edgeID < edgeNum; edgeID++) { //遍历某个节点的所有边
-                if (_D2DHypergraph[D2DPairID][edgeID]) { //如果边存在
-                    vector<int> vecD2DPairID; //某个边连接的所有节点的ID
-                    for (int nodeID = 0; nodeID < nodeNum; ++nodeID) {
-                        if (_D2DHypergraph[nodeID][edgeID]) {
-                            vecD2DPairID.push_back(nodeID);
-                        }
-                    }
-                    //检查边连接的节点是不是都属于子图
-                    vector<int> vecPushEdgeID;
-                    int vecSize = 0;
-                    for (int nodeID : vecD2DPairID) {
-                        vecSize++;
-                        for (int _D2DPairID : vecSubGraphD2DPairID) {
-                            if (nodeID == _D2DPairID) vecPushEdgeID.push_back(1);
-                        }
-                        if (vecPushEdgeID.size() < vecSize) vecPushEdgeID.push_back(0);
-                    }
+        //检查子图是否为空
+        while (vecSubGraphOneColor.size()) {
+            //更新 D2D pair 关于某个颜色的子图
+            for (auto nodePtr : vecSubGraphOneColor) {
+                //将某个节点子图中的所有边的ID存入vecEdgeID
+                vector<int> vecEdgeID;
+                for (auto temp : nodePtr->getMapEdgeID2NodeID()) { //遍历节点的所有边 筛选出属于子图的边
+                    int edgeID = temp.first;
+                    //判断边对应节点的候选颜色集是否有该颜色
                     bool pushEdgeID = true;
-                    for (int temp : vecPushEdgeID) {
-                        if (!temp) pushEdgeID = false;
+                    for (auto nodeID : temp.second) {
+                        if (mapSubGraphOneColor.find(nodeID) == mapSubGraphOneColor.end()) { //节点不存在
+                            pushEdgeID = false;
+                        }
                     }
                     if (pushEdgeID) vecEdgeID.push_back(edgeID);
                 }
+                nodePtr->addColorID2EdgeID(colorID, vecEdgeID);
             }
-            //更新节点度
-            int degree = (int)vecEdgeID.size();
-            mapSubGraphOneColor.at(D2DPairID)->setDegree(degree);
+
+            //计算所有节点关于某种颜色的节点度
+            for (auto nodePtr : vecSubGraphOneColor) {
+                nodePtr->updateDegree(colorID);
+            }
+
+            //按节点度排序
+            sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DDegree); //按度从高到低排序
+
+            //给着色序号最先的节点着色
+            vecSubGraphOneColor[0]->SetColor(colorID);
+            vecSubGraphOneColor[0]->clearCandidateColor(); //清除已着色节点的候选颜色集
+
+            //在相邻节点的候选颜色集中去掉该颜色
+            map<int, vector<int>> mapEdgeID2NodeID = vecSubGraphOneColor[0]->getMapEdgeID2NodeID();
+            for (auto temp : mapEdgeID2NodeID) {
+                if ((int)temp.second.size() == 1) { //如果是普通边
+                    int adjacentNodeID = temp.second[0];
+                    _mapID2D2DPairPtr.at(adjacentNodeID)->deleteCandidateColor(colorID);
+                } else { //如果是超边
+                    int adjacentNodeID1 = temp.second[0];
+                    int adjacentNodeID2 = temp.second[1];
+                    if (_mapID2D2DPairPtr.at(adjacentNodeID1)->getColor() == colorID) {
+                        _mapID2D2DPairPtr.at(adjacentNodeID2)->deleteCandidateColor(colorID);
+                    } else if (_mapID2D2DPairPtr.at(adjacentNodeID2)->getColor() == colorID) {
+                        _mapID2D2DPairPtr.at(adjacentNodeID1)->deleteCandidateColor(colorID);
+                    }
+                }
+            }
+
+            ////更新子图
+            map<int, D2DPair *> tempmapSubGraphOneColor = mapSubGraphOneColor;
+            mapSubGraphOneColor.clear();
+            vecSubGraphOneColor.clear();
+            for (auto tempD2DPair : tempmapSubGraphOneColor) {
+                vector<int> vecCandidateColor = tempD2DPair.second->getVecCandidateColor();
+                for (int candidateColorID : vecCandidateColor) {
+                    if (candidateColorID == colorID) {
+                        mapSubGraphOneColor.insert(tempD2DPair);
+                        vecSubGraphOneColor.push_back(tempD2DPair.second);
+                    }
+                }
+            }
         }
-
-        //按节点度排序
-        sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DDegree); //按度从高到低排序
-
-        //给着色序号最先的节点着色
-        vecSubGraphOneColor[0]->SetColor(colorID);
     }
 }
 
@@ -682,6 +700,7 @@ D2DPair::~D2DPair() {
 
 void D2DPair::SetColor(int _colorID) {
     color = _colorID;
+    cout << "D2D Pair Tx: " << TxID << ", 着色：" << color << endl;
 }
 
 void D2DPair::initial(double _power, double _dXPoint, double _dYPoint) {
@@ -750,4 +769,26 @@ const map<int, vector<int>> &D2DPair::getMapEdgeID2NodeID() const {
 
 void D2DPair::addColorID2EdgeID(int _colorID, vector<int> _vecEdgeID) {
     mapColorID2EdgeID.insert(pair<int, vector<int>>(_colorID, _vecEdgeID));
+}
+
+void D2DPair::updateDegree(int _colorID) {
+    degree = (int)mapColorID2EdgeID.at(_colorID).size();
+}
+
+void D2DPair::deleteCandidateColor(int _colorID) {
+    vector<int> tempvecCandidateColor = vecCandidateColor;
+    vecCandidateColor.clear();
+    for (int tempColorID : tempvecCandidateColor) {
+        if (tempColorID != _colorID) {
+            vecCandidateColor.push_back(tempColorID);
+        }
+    }
+}
+
+int D2DPair::getColor() const {
+    return color;
+}
+
+void D2DPair::clearCandidateColor() {
+    vecCandidateColor.clear();
 }

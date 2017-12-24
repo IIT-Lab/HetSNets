@@ -275,7 +275,7 @@ void MacroCell::Scheduler() {
         double threshold = 20;
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
-        if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 50) {
+        if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 1) {
             cout << "*****************图构建*****************" << endl;
             SetGraph(threshold);
             int nodeNum = (int)graph.size();
@@ -292,7 +292,7 @@ void MacroCell::Scheduler() {
         /********************************贪婪图着色*********************************/
 
         /********************************超图着色*********************************/
-        if (SystemDriveBus::iSlot >= 50) {
+        if (SystemDriveBus::iSlot >= 1 && SystemDriveBus::iSlot < 2) {
             cout << "*****************超图构建*****************" << endl;
             SetHypergraph(threshold);
             int nodeNum = (int)hypergraph.size();
@@ -309,7 +309,7 @@ void MacroCell::Scheduler() {
         /********************************超图着色*********************************/
 
         /********************************干扰区域超图着色*********************************/
-        if (SystemDriveBus::iSlot == -1) {
+        if (SystemDriveBus::iSlot >= 2) {
             cout << "*****************干扰区域构建*****************" << endl;
             map<int, macroUser*> mapID2MUEPtr;
             for (int macroUserID : vecMacroUserID) {
@@ -323,6 +323,15 @@ void MacroCell::Scheduler() {
 
             cout << "*****************蜂窝用户着色*****************" << endl;
             macroUserColoring(mapID2MUEPtr, RBNUM);
+
+            int TxID, RxID, RBID;
+            for (auto temp : mapID2MUEPtr) {
+                TxID = temp.second->getUID();
+                RxID = 0;
+                RBID = temp.second->getColor();
+                MacroUserTxPower = temp.second->getPower();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, MacroUserTxPower);
+            }
 
             cout << "*****************超图构建*****************" << endl;
             map<int, D2DPair*> mapID2D2DPairPtr;
@@ -351,6 +360,14 @@ void MacroCell::Scheduler() {
 
             cout << "*****************D2D超图着色*****************" << endl;
             D2DHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM);
+
+            for (auto temp : mapID2D2DPairPtr) {
+                TxID = temp.second->getTxID();
+                RxID = temp.second->getRxID();;
+                RBID = temp.second->getColor();
+                D2DTxPower = temp.second->getPower();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
+            }
 
             cout << "*****************D2D着色结束*****************" << endl;
         }

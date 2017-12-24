@@ -68,7 +68,7 @@ void HardwareEntity::WorkslotHardwareEntityRx()
     }
     //将路损表的指针传给信道对象，在信道里查询干扰登记表，调用信道对象的setmLinkLossPtr函数,写入指针
     TLinklossPowerVecMap.clear();	//每个时隙接收端都会向信道进行设置路损，所以每次时隙循环都要清除掉
-    if (myChannelPtr != nullptr) myChannelPtr->setmLinkLossPtr(&TLinklossPowerVecMap);
+//    if (myChannelPtr != nullptr) myChannelPtr->setmLinkLossPtr(&TLinklossPowerVecMap);
 }
 
 vector<map<int, pair<double, double>>>& HardwareEntity::GetLinkloss()

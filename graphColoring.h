@@ -113,6 +113,10 @@ public:
 
     int getColor() const;
 
+    int getUID() const;
+
+    double getPower() const;
+
 private:
     int uID;
     double power; //宏蜂窝用户发射功率
@@ -151,6 +155,8 @@ public:
 
     int getDegree() const;
 
+    int getColor() const;
+
     void addEdgeID(int _edgeID);
 
     void addEdgeID2NodeID(int _edgeID, vector<int> _vecNodeID);
@@ -160,6 +166,12 @@ public:
     const vector<int> &getVecEdgeID() const;
 
     const map<int, vector<int>> &getMapEdgeID2NodeID() const;
+
+    void updateDegree(int _colorID); //更新节点关于某个颜色的节点度
+
+    void deleteCandidateColor(int _colorID); //在候选颜色集中删除某种颜色
+
+    void clearCandidateColor(); //着色后清除候选颜色集
 
 private:
     int ID; //编号 从0开始
@@ -173,7 +185,7 @@ private:
     int color; //节点的颜色
     vector<int> vecCandidateColor; //节点候选颜色集
     vector<int> vecEdgeID; //相邻边集
-    map<int, vector<int>> mapColorID2EdgeID; //颜色ID——相邻边集
+    map<int, vector<int>> mapColorID2EdgeID; //颜色ID——相邻边集 关于某种颜色的子图
     map<int, vector<int>> mapEdgeID2NodeID; //边ID——相邻节点集
 };
 

@@ -121,9 +121,9 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 0;
+    int slot = 3;
 
-    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
+//    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 
     //开始进行时隙循环
     cout << "*****************时隙循环开始*****************" << endl;
@@ -149,16 +149,28 @@ int main()
         SystemDriveBus::iSlot++;
     }
 
-//    double sumRate;
-//    sumRate = GetSumRate(0);
-//    cout << "********************************************" << endl;
-//    cout << "图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
-//    cout << "********************************************" << endl;
-//
-//    sumRate = GetSumRate(1);
-//    cout << "********************************************" << endl;
-//    cout << "超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
-//    cout << "********************************************" << endl;
+    ////统计
+    cout << endl << endl;
+    cout << "//////////////////////////////////////////////////////////////////" << endl;
+    cout << "CUE NUM: " << SystemDriveBus::ModeID2Par.at(1).get_numOfRx() << endl;
+    cout << "D2D NUM: " << SystemDriveBus::ModeID2Par.at(4).get_numOfRx() << endl;
+    cout << "RB NUM: " << RBNUM << endl;
+
+    double sumRate;
+    sumRate = GetSumRate(0);
+    cout << "********************************************" << endl;
+    cout << "图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "********************************************" << endl;
+
+    sumRate = GetSumRate(1);
+    cout << "********************************************" << endl;
+    cout << "超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "********************************************" << endl;
+
+    sumRate = GetSumRate(2);
+    cout << "********************************************" << endl;
+    cout << "干扰区域超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "********************************************" << endl;
 
     return 0;
 }
