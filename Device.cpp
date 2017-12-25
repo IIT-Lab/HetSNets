@@ -359,7 +359,7 @@ void MacroCell::Scheduler() {
             SetD2DHypergraph(mapID2D2DPairPtr, D2DHypergraph);
 
             cout << "*****************D2D超图着色*****************" << endl;
-            D2DHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM);
+            D2DHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM, mapID2MUEPtr);
 
             for (auto temp : mapID2D2DPairPtr) {
                 TxID = temp.second->getTxID();

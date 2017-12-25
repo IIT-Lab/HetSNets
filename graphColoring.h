@@ -173,6 +173,10 @@ public:
 
     void clearCandidateColor(); //着色后清除候选颜色集
 
+    void setOrder(double order);
+
+    double getOrder() const;
+
 private:
     int ID; //编号 从0开始
     int TxID;
@@ -182,6 +186,7 @@ private:
     double dYPoint; //D2DTx的坐标
 
     int degree; //度
+    double order; //着色序号
     int color; //节点的颜色
     vector<int> vecCandidateColor; //节点候选颜色集
     vector<int> vecEdgeID; //相邻边集
@@ -201,8 +206,10 @@ void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D
 
 void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph);
 
-void D2DHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum);
+void D2DHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
 
 bool comD2DDegree(D2DPair* _D2DPair1, D2DPair* _D2DPair2);
+
+bool comD2DOrder(D2DPair* _D2DPair1, D2DPair* _D2DPair2);
 
 #endif //HETSNETS_GRAPHCOLORING_H

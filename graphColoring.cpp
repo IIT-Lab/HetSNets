@@ -601,7 +601,7 @@ void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> 
 
 }
 
-void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum) {
+void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr) {
     for (int colorID = 0; colorID < _colorNum; ++colorID) { //遍历系统候选颜色集
         //构建关于某个颜色的子图
         map<int, D2DPair *> mapSubGraphOneColor; //存储子图中包含的 D2D pair
@@ -641,8 +641,137 @@ void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector
                 nodePtr->updateDegree(colorID);
             }
 
-            //按节点度排序
-            sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DDegree); //按度从高到低排序
+            //////计算着色顺序
+            //统计已经着色 colorID 的所有节点
+            macroUser * coloredMacroUser = nullptr;
+            vector<D2DPair *> vecColoredNode;
+            //找出着色 colorID 的蜂窝用户
+            for (auto temp : _mapID2MUEPtr) {
+                if (temp.second->getColor() == colorID) {
+                    coloredMacroUser = temp.second;
+                }
+            }
+            //找出着色 colorID 的D2D pair
+            for (auto temp : _mapID2D2DPairPtr) {
+                if (temp.second->getColor() == colorID) vecColoredNode.push_back(temp.second);
+            }
+            //计算 colorID 的和速率
+            double rateBefore, rateAfter, macroSinr, D2DSinr, macroUserPower, D2DTxPower, linkloss, channelGain, signalPow;
+            double macroRate = 0;
+            double D2DRate = 0;
+            vector<double> vecD2DRate;
+            double interferencePow = 0;
+            double whiteNoise = -174;//-174dBm/Hz
+            double noiseFig = 5;//dB
+            noiseFig = pow(10, noiseFig / 10);//线性值
+            double thermalNoisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
+            /********************rateBefore**********************/
+            ////计算蜂窝用户速率
+            if (coloredMacroUser != nullptr) {
+                //计算目标信号功率
+                macroUserPower = coloredMacroUser->getPower();
+                linkloss = GetLinkloss(coloredMacroUser->getUID(), 0, SystemDriveBus::iSlot);
+                channelGain = pow(10, -linkloss / 10);//线性值
+                signalPow = macroUserPower * channelGain;
+                for (auto temp : vecColoredNode) { //计算干扰信号功率
+                    D2DTxPower = temp->getPower();
+                    linkloss = GetLinkloss(temp->getTxID(), 0, SystemDriveBus::iSlot);
+                    channelGain = pow(10, -linkloss / 10);//线性值
+                    interferencePow = interferencePow + D2DTxPower * channelGain;
+                }
+                macroSinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                macroRate = 180000 * RBNUM * log2(1 + macroSinr);
+            }
+
+            ////计算D2D用户速率
+            for (auto temp : vecColoredNode) {
+                //计算目标信号功率
+                D2DTxPower = temp->getPower();
+                linkloss = GetLinkloss(temp->getTxID(), temp->getRxID(), SystemDriveBus::iSlot);
+                channelGain = pow(10, -linkloss / 10);//线性值
+                signalPow = D2DTxPower * channelGain;
+                //计算蜂窝用户的干扰
+                macroUserPower = coloredMacroUser->getPower();
+                linkloss = GetLinkloss(coloredMacroUser->getUID(), temp->getRxID(), SystemDriveBus::iSlot);
+                channelGain = pow(10, -linkloss / 10);//线性值
+                interferencePow = macroUserPower * channelGain;
+                for (auto interNode : vecColoredNode) {
+                    if (interNode->getID() != temp->getID()) { //计算干扰信号功率
+                        D2DTxPower = interNode->getPower();
+                        linkloss = GetLinkloss(interNode->getTxID(), temp->getRxID(), SystemDriveBus::iSlot);
+                        channelGain = pow(10, -linkloss / 10);//线性值
+                        interferencePow = interferencePow + D2DTxPower * channelGain;
+                    }
+                }
+                D2DSinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                D2DRate = 180000 * RBNUM * log2(1 + D2DSinr);
+                vecD2DRate.push_back(D2DRate);
+            }
+            rateBefore = macroRate;
+            for (double _D2DRate : vecD2DRate) {
+                rateBefore = rateBefore + _D2DRate;
+            }
+            /********************rateBefore**********************/
+
+            /********************rateAfter**********************/
+            vector<D2DPair *> vecColoredNodeAfter = vecColoredNode;
+            for (auto nodePtr : vecSubGraphOneColor) {
+                vecColoredNodeAfter.push_back(nodePtr); //将准备着色的节点加入已着色节点集合
+                ////计算蜂窝用户速率
+                if (coloredMacroUser != nullptr) {
+                    //计算目标信号功率
+                    macroUserPower = coloredMacroUser->getPower();
+                    linkloss = GetLinkloss(coloredMacroUser->getUID(), 0, SystemDriveBus::iSlot);
+                    channelGain = pow(10, -linkloss / 10);//线性值
+                    signalPow = macroUserPower * channelGain;
+                    for (auto temp : vecColoredNodeAfter) { //计算干扰信号功率
+                        D2DTxPower = temp->getPower();
+                        linkloss = GetLinkloss(temp->getTxID(), 0, SystemDriveBus::iSlot);
+                        channelGain = pow(10, -linkloss / 10);//线性值
+                        interferencePow = interferencePow + D2DTxPower * channelGain;
+                    }
+                    macroSinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                    macroRate = 180000 * RBNUM * log2(1 + macroSinr);
+                }
+                ////计算D2D用户速率
+                for (auto temp : vecColoredNodeAfter) {
+                    //计算目标信号功率
+                    D2DTxPower = temp->getPower();
+                    linkloss = GetLinkloss(temp->getTxID(), temp->getRxID(), SystemDriveBus::iSlot);
+                    channelGain = pow(10, -linkloss / 10);//线性值
+                    signalPow = D2DTxPower * channelGain;
+                    //计算蜂窝用户的干扰
+                    macroUserPower = coloredMacroUser->getPower();
+                    linkloss = GetLinkloss(coloredMacroUser->getUID(), temp->getRxID(), SystemDriveBus::iSlot);
+                    channelGain = pow(10, -linkloss / 10);//线性值
+                    interferencePow = macroUserPower * channelGain;
+                    for (auto interNode : vecColoredNode) {
+                        if (interNode->getID() != temp->getID()) { //计算干扰信号功率
+                            D2DTxPower = interNode->getPower();
+                            linkloss = GetLinkloss(interNode->getTxID(), temp->getRxID(), SystemDriveBus::iSlot);
+                            channelGain = pow(10, -linkloss / 10);//线性值
+                            interferencePow = interferencePow + D2DTxPower * channelGain;
+                        }
+                    }
+                    D2DSinr = signalPow / (interferencePow + thermalNoisePow); //线性
+                    D2DRate = 180000 * RBNUM * log2(1 + D2DSinr);
+                    vecD2DRate.push_back(D2DRate);
+                }
+                rateAfter = macroRate;
+                for (double _D2DRate : vecD2DRate) {
+                    rateAfter = rateAfter + _D2DRate;
+                }
+                double order = (rateAfter - rateBefore) / (nodePtr->getDegree() + 1);
+                nodePtr->setOrder(order);
+            }
+
+            /********************rateAfter**********************/
+
+//            //按节点度排序
+//            sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DDegree); //按度从高到低排序
+
+            //按节点着色序号 order 排序
+            sort(vecSubGraphOneColor.begin(), vecSubGraphOneColor.end(), comD2DOrder); //按order从高到低排序
 
             //给着色序号最先的节点着色
             vecSubGraphOneColor[0]->SetColor(colorID);
@@ -684,6 +813,10 @@ void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector
 
 bool comD2DDegree(D2DPair *_D2DPair1, D2DPair *_D2DPair2) {
     return _D2DPair1->getDegree() > _D2DPair2->getDegree();
+}
+
+bool comD2DOrder(D2DPair *_D2DPair1, D2DPair *_D2DPair2) {
+    return _D2DPair1->getOrder() > _D2DPair2->getOrder();
 }
 
 /********************************D2DUser类*********************************/
@@ -791,4 +924,12 @@ int D2DPair::getColor() const {
 
 void D2DPair::clearCandidateColor() {
     vecCandidateColor.clear();
+}
+
+void D2DPair::setOrder(double order) {
+    D2DPair::order = order;
+}
+
+double D2DPair::getOrder() const {
+    return order;
 }
