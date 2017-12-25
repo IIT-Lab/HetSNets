@@ -330,4 +330,25 @@ double GetSinr(int _slotID, int _TxID) {
     return sinr;
 }
 
+void pushSumRate(int _cueNum, int _D2DNum, int _RBNUM, double _SumRate, int _algorithm) {
+    string strCueNum = intToString(_cueNum);
+    string strD2DNum = intToString(_D2DNum);
+    string strRBNUM = intToString(_RBNUM);
+    string strSumRate = doubleToString(_SumRate);
+    string strAlgorithm = intToString(_algorithm);
+
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        string SQLString = "INSERT INTO SystemCapacityPerSlot(CUENUM, D2DNUM, RBNUM, SystemCapacity, algorithm) "
+                                   "VALUES(" + strCueNum + "," + strD2DNum + "," + strRBNUM + "," + strSumRate + "," + strAlgorithm + ")";
+        if(mysql->insert(SQLString)) {
+//            cout << "插入成功" << endl;
+        }
+        else
+            cout << "执行失败" << endl;
+    }
+    mysql->destroyConnection();
+}
+
 

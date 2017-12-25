@@ -76,5 +76,6 @@ double GetLinkloss(int _TxID, int _RxID, int _slotID);
 void SetSINR(int _TxID, int _RxID, int _RBID, int _slotID, double _sinr, double _rate);
 double GetSumRate(int _slotID);
 double GetSinr(int _slotID, int _TxID);
+void pushSumRate(int _cueNum, int _D2DNum, int _RBNUM, double _SumRate, int _algorithm); //_algorithm 算法序号 1:普通图 2:超图 3：干扰区域超图
 
 #endif //HETSNETS_MYSQLMANAGER_H

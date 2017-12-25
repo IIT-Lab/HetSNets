@@ -152,24 +152,32 @@ int main()
     ////统计
     cout << endl << endl;
     cout << "//////////////////////////////////////////////////////////////////" << endl;
-    cout << "CUE NUM: " << SystemDriveBus::ModeID2Par.at(1).get_numOfRx() << endl;
-    cout << "D2D NUM: " << SystemDriveBus::ModeID2Par.at(4).get_numOfRx() << endl;
+    int cueNum = SystemDriveBus::ModeID2Par.at(1).get_numOfRx();
+    int D2DNum = SystemDriveBus::ModeID2Par.at(4).get_numOfRx();
+    cout << "CUE NUM: " << cueNum << endl;
+    cout << "D2D NUM: " << D2DNum << endl;
     cout << "RB NUM: " << RBNUM << endl;
 
     double sumRate;
     sumRate = GetSumRate(0);
+    sumRate = sumRate / 180000 / RBNUM;
     cout << "********************************************" << endl;
-    cout << "图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "图着色的系统容量:" << sumRate << endl;
+    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 1);
     cout << "********************************************" << endl;
 
     sumRate = GetSumRate(1);
+    sumRate = sumRate / 180000 / RBNUM;
     cout << "********************************************" << endl;
-    cout << "超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "超图着色的系统容量:" << sumRate << endl;
+    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 2);
     cout << "********************************************" << endl;
 
     sumRate = GetSumRate(2);
+    sumRate = sumRate / 180000 / RBNUM;
     cout << "********************************************" << endl;
-    cout << "干扰区域超图着色的系统容量:" << sumRate / 180000 / RBNUM << endl;
+    cout << "干扰区域超图着色的系统容量:" << sumRate << endl;
+    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 3);
     cout << "********************************************" << endl;
 
     return 0;
