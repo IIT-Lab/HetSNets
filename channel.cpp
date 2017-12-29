@@ -61,7 +61,7 @@ void channel::WorkSlot(default_random_engine dre)
 
 void channel::UpdateAllTxLinkLossTable()
 {
-    if (SystemDriveBus::iSlot % 3 == 0) {
+    if (SystemDriveBus::iSlot % 4 == 0) {
         cout << "更新信道:" << iID << endl;
         mLinkLoss.clear();//每次更新前先清除掉容器
 

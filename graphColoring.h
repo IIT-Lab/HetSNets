@@ -206,7 +206,11 @@ void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D
 
 void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph);
 
+void SetD2DGraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DGraph);
+
 void D2DHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
+
+void D2DGraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DGraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
 
 bool comD2DDegree(D2DPair* _D2DPair1, D2DPair* _D2DPair2);
 

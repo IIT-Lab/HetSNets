@@ -275,7 +275,7 @@ void MacroCell::Scheduler() {
         double threshold = 20;
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
-//        if (1) {
+//        if (0) {
         if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 1) {
             cout << "*****************图构建*****************" << endl;
             SetGraph(threshold);
@@ -310,9 +310,75 @@ void MacroCell::Scheduler() {
         }
         /********************************超图着色*********************************/
 
+        /********************************干扰区域图着色*********************************/
+//        if (1) {
+        if (SystemDriveBus::iSlot >= 2 && SystemDriveBus::iSlot < 3) {
+            cout << "*****************干扰区域构建*****************" << endl;
+            map<int, macroUser*> mapID2MUEPtr;
+            for (int macroUserID : vecMacroUserID) {
+                double linkloss = GetLinkloss(macroUserID, 0, SystemDriveBus::iSlot);
+                double channelGain = pow(10, -linkloss / 10);//线性值
+                macroUser* macroUserPtr = new macroUser(macroUserID, MacroUserTxPower, D2DTxPower, channelGain, cellRadius);
+                mapID2MUEPtr.insert(pair<int, macroUser*>(macroUserID, macroUserPtr));
+            }
+
+            SLAComputing(mapID2MUEPtr);
+
+            cout << "*****************蜂窝用户着色*****************" << endl;
+            macroUserColoring(mapID2MUEPtr, RBNUM);
+
+            int TxID, RxID, RBID;
+            for (auto temp : mapID2MUEPtr) {
+                TxID = temp.second->getUID();
+                RxID = 0;
+                RBID = temp.second->getColor();
+                MacroUserTxPower = temp.second->getPower();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, MacroUserTxPower);
+            }
+
+            cout << "*****************图构建*****************" << endl;
+            map<int, D2DPair*> mapID2D2DPairPtr;
+            vector<vector<int>> D2DGraph; //表示图的矩阵incidence Matrix
+
+            //构建 D2D pair ID 对 D2D pair 指针登记表
+            int D2DPairID = 0;
+            for (auto temp : mapD2DUserID) {
+                D2DPair* D2DPairPtr = new D2DPair(D2DPairID, temp.first, temp.second);
+                //初始化initial 添加用户发射功率和坐标
+                int D2DTxID = temp.first;
+                User * D2DTxPtr = dynamic_cast<User *>(SystemDriveBus::ID2PtrBus.at(D2DTxID));
+                double dXPoint = D2DTxPtr->getDXPoint();
+                double dYPoint = D2DTxPtr->getDYPoint();
+                D2DPairPtr->initial(D2DTxPower, dXPoint, dYPoint);
+
+                mapID2D2DPairPtr.insert(pair<int, D2DPair*>(D2DPairID, D2DPairPtr));
+                D2DPairID++;
+            }
+
+            //根据干扰区域初始化 D2D pair 的候选颜色集
+            SetD2DPair(mapID2MUEPtr, mapID2D2DPairPtr, RBNUM);
+
+            //构造以 D2D pair 为节点的图
+            SetD2DGraph(mapID2D2DPairPtr, D2DGraph);
+
+            cout << "*****************D2D图着色*****************" << endl;
+            D2DGraphColoring(mapID2D2DPairPtr, D2DGraph, RBNUM, mapID2MUEPtr);
+
+            for (auto temp : mapID2D2DPairPtr) {
+                TxID = temp.second->getTxID();
+                RxID = temp.second->getRxID();;
+                RBID = temp.second->getColor();
+                D2DTxPower = temp.second->getPower();
+                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
+            }
+
+            cout << "*****************D2D着色结束*****************" << endl;
+        }
+        /********************************干扰区域图着色*********************************/
+
         /********************************干扰区域超图着色*********************************/
 //        if (0) {
-        if (SystemDriveBus::iSlot >= 2) {
+        if (SystemDriveBus::iSlot >= 3) {
             cout << "*****************干扰区域构建*****************" << endl;
             map<int, macroUser*> mapID2MUEPtr;
             for (int macroUserID : vecMacroUserID) {
@@ -1202,7 +1268,7 @@ User::User(string _user_type)
         double x, y, tempx, tempy;
         int randCell;
 //        double cell_radius = Macro_mode_par.get_radius();
-        double cell_radius = 200;
+        double cell_radius = 300;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;
