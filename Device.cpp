@@ -275,6 +275,7 @@ void MacroCell::Scheduler() {
         double threshold = 20;
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
+//        if (1) {
         if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 1) {
             cout << "*****************图构建*****************" << endl;
             SetGraph(threshold);
@@ -292,6 +293,7 @@ void MacroCell::Scheduler() {
         /********************************贪婪图着色*********************************/
 
         /********************************超图着色*********************************/
+//        if (0) {
         if (SystemDriveBus::iSlot >= 1 && SystemDriveBus::iSlot < 2) {
             cout << "*****************超图构建*****************" << endl;
             SetHypergraph(threshold);
@@ -309,6 +311,7 @@ void MacroCell::Scheduler() {
         /********************************超图着色*********************************/
 
         /********************************干扰区域超图着色*********************************/
+//        if (0) {
         if (SystemDriveBus::iSlot >= 2) {
             cout << "*****************干扰区域构建*****************" << endl;
             map<int, macroUser*> mapID2MUEPtr;
@@ -1198,7 +1201,8 @@ User::User(string _user_type)
         double U2SRadius = 0; //用户到小蜂窝基站的距离
         double x, y, tempx, tempy;
         int randCell;
-        double cell_radius = Macro_mode_par.get_radius();
+//        double cell_radius = Macro_mode_par.get_radius();
+        double cell_radius = 200;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;

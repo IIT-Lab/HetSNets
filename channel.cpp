@@ -61,166 +61,168 @@ void channel::WorkSlot(default_random_engine dre)
 
 void channel::UpdateAllTxLinkLossTable()
 {
-    cout << "更新信道:" << iID << endl;
-    mLinkLoss.clear();//每次更新前先清除掉容器
+    if (SystemDriveBus::iSlot % 3 == 0) {
+        cout << "更新信道:" << iID << endl;
+        mLinkLoss.clear();//每次更新前先清除掉容器
 
-    double fc = 2300;
-    double angle = 0;
-    double angleTemp = 0;
-    double angle3dB = 65;
-    double maxAttenuation = 20;
-    double angleX, angleY;
-    double STDDeviation = 1;
-    double linkLoss, channelGain, shadowFading = 0;
-    double x1 = 0;
-    double y1 = 0;
-    double x2 = 0;
-    double y2 = 0;
+        double fc = 2300;
+        double angle = 0;
+        double angleTemp = 0;
+        double angle3dB = 65;
+        double maxAttenuation = 20;
+        double angleX, angleY;
+        double STDDeviation = 1;
+        double linkLoss, channelGain, shadowFading = 0;
+        double x1 = 0;
+        double y1 = 0;
+        double x2 = 0;
+        double y2 = 0;
 
-    double antennaGain = 0;//dBi
-    double  pathLoss = 0;
+        double antennaGain = 0;//dBi
+        double  pathLoss = 0;
 
-    static int i;
+        static int i;
 
-    bool losOrNlos;
+        bool losOrNlos;
 
-    Interface *TxPtr = nullptr;
+        Interface *TxPtr = nullptr;
 
-    Interface *receivePtr = SystemDriveBus::ID2Ptr(receiveID);
-    if (receivePtr->sGetType() == "class MacroCell *") { //接收机是宏蜂窝基站
-        MacroCell *macroRxPtr = dynamic_cast<MacroCell *>(receivePtr);
-        x1 = macroRxPtr->GetXPoint();
-        y1 = macroRxPtr->GetYPoint();
-        for (auto IDtemp : sTxID)//遍历所有与该接收机有关的发射机
-        {//1 begain
-            //先算路径损耗
-            TxPtr = SystemDriveBus::ID2Ptr(IDtemp);
-            string TxType = TxPtr->sGetType();
-            //选择发射机的类型
-            if (TxType == "class User *") {
-                User *userTxPtr = dynamic_cast<User *>(TxPtr);
-                x2 = userTxPtr->getDXPoint();
-                y2 = userTxPtr->getDYPoint();
-                losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
-                if (losOrNlos) {
-                    pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+        Interface *receivePtr = SystemDriveBus::ID2Ptr(receiveID);
+        if (receivePtr->sGetType() == "class MacroCell *") { //接收机是宏蜂窝基站
+            MacroCell *macroRxPtr = dynamic_cast<MacroCell *>(receivePtr);
+            x1 = macroRxPtr->GetXPoint();
+            y1 = macroRxPtr->GetYPoint();
+            for (auto IDtemp : sTxID)//遍历所有与该接收机有关的发射机
+            {//1 begain
+                //先算路径损耗
+                TxPtr = SystemDriveBus::ID2Ptr(IDtemp);
+                string TxType = TxPtr->sGetType();
+                //选择发射机的类型
+                if (TxType == "class User *") {
+                    User *userTxPtr = dynamic_cast<User *>(TxPtr);
+                    x2 = userTxPtr->getDXPoint();
+                    y2 = userTxPtr->getDYPoint();
+                    losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+                    if (losOrNlos) {
+                        pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
+                    else {
+                        pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
+                } else {
+                    cout << "set tx Error!!!" << endl;
                 }
-                else {
-                    pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
-                }
-            } else {
-                cout << "set tx Error!!!" << endl;
-            }
 
-            //没有涉及相关距离的阴影衰落
-            std::default_random_engine generator(i);
-            //std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
-            std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
-            shadowFading = dB::Linear2dB(Lognormal(generator));
-            i = i + 100;
+                //没有涉及相关距离的阴影衰落
+                std::default_random_engine generator(i);
+                //std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
+                std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
+                shadowFading = dB::Linear2dB(Lognormal(generator));
+                i = i + 100;
 
 //        /****Shadow_Fadings****/
 //        double temp_double = STD_DEVIATION * randn();
 //        shadowFading = sqrt(SHADOW_CORREATION) * (temp_double + STD_DEVIATION * randn());
 
 //            shadowFading = 0;
-            antennaGain = 0;
+                antennaGain = 0;
 
-            linkLoss = pathLoss + shadowFading + antennaGain;
-            mLinkLoss[IDtemp] = linkLoss;
+                linkLoss = pathLoss + shadowFading + antennaGain;
+                mLinkLoss[IDtemp] = linkLoss;
 
-            channelGain = pow(10, -linkLoss / 10);
-            mChannelGain[IDtemp] = channelGain;
-        }
-    } else if (receivePtr->sGetType() == "class User *") {
-        User *userRxPtr = dynamic_cast<User *>(receivePtr);
-        x1 = userRxPtr->getDXPoint();//目的坐标
-        y1 = userRxPtr->getDYPoint();
-        for (auto IDtemp : sTxID)//遍历所有与该接收机有关的发射机
-        {//1 begain
-            //先算路径损耗
-            TxPtr = SystemDriveBus::ID2Ptr(IDtemp);
-            string TxType = TxPtr->sGetType();
+                channelGain = pow(10, -linkLoss / 10);
+                mChannelGain[IDtemp] = channelGain;
+            }
+        } else if (receivePtr->sGetType() == "class User *") {
+            User *userRxPtr = dynamic_cast<User *>(receivePtr);
+            x1 = userRxPtr->getDXPoint();//目的坐标
+            y1 = userRxPtr->getDYPoint();
+            for (auto IDtemp : sTxID)//遍历所有与该接收机有关的发射机
+            {//1 begain
+                //先算路径损耗
+                TxPtr = SystemDriveBus::ID2Ptr(IDtemp);
+                string TxType = TxPtr->sGetType();
 
-            //选择发射机的类型
-            if (TxType == "class MacroCell *")
-            {
-                MacroCell * macroTxPtr = dynamic_cast<MacroCell *>(TxPtr);
-                x2 = macroTxPtr->GetXPoint();
-                y2 = macroTxPtr->GetYPoint();
+                //选择发射机的类型
+                if (TxType == "class MacroCell *")
+                {
+                    MacroCell * macroTxPtr = dynamic_cast<MacroCell *>(TxPtr);
+                    x2 = macroTxPtr->GetXPoint();
+                    y2 = macroTxPtr->GetYPoint();
 
-                losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
-                if (losOrNlos) {
-                    pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
-                }
-                else {
-                    pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
-                }
+                    losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+                    if (losOrNlos) {
+                        pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
+                    else {
+                        pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
 
 //                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
 
-                angleX = x1 - x2;
-                angleY = y1 - y2;
-                angleTemp = angleCalc(angleX, angleY);//弧度
-                angle = angleTemp * 180 / PI;
-                angle = angle - 180;
+                    angleX = x1 - x2;
+                    angleY = y1 - y2;
+                    angleTemp = angleCalc(angleX, angleY);//弧度
+                    angle = angleTemp * 180 / PI;
+                    angle = angle - 180;
 
-                //天线增益
-                antennaGain = -min(12 * pow(angle / angle3dB, 2), maxAttenuation);//天线增益
-            }
-            else if (TxType == "class SmallCell *")
-            {
-                SmallCell * smallCellTxPtr = dynamic_cast<SmallCell *>(TxPtr);
-                x2 = smallCellTxPtr->GetXPoint();
-                y2 = smallCellTxPtr->GetYPoint();
+                    //天线增益
+                    antennaGain = -min(12 * pow(angle / angle3dB, 2), maxAttenuation);//天线增益
+                }
+                else if (TxType == "class SmallCell *")
+                {
+                    SmallCell * smallCellTxPtr = dynamic_cast<SmallCell *>(TxPtr);
+                    x2 = smallCellTxPtr->GetXPoint();
+                    y2 = smallCellTxPtr->GetYPoint();
 
 //            pathLoss = IMTA::vPathLoss(x1, y1, x2, y2, STDDeviation, fc);
 
-                losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
-                if (losOrNlos) {
-                    pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+                    losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+                    if (losOrNlos) {
+                        pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
+                    else {
+                        pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
                 }
-                else {
-                    pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
-                }
-            }
-            else if (TxType == "class User *") {
-                User * UserTxPtr = dynamic_cast<User *>(TxPtr);
-                x2 = UserTxPtr->getDXPoint();
-                y2 = UserTxPtr->getDYPoint();
+                else if (TxType == "class User *") {
+                    User * UserTxPtr = dynamic_cast<User *>(TxPtr);
+                    x2 = UserTxPtr->getDXPoint();
+                    y2 = UserTxPtr->getDYPoint();
 
-                losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
-                if (losOrNlos) {
-                    pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
-                }
-                else {
-                    pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
-                }
+                    losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+                    if (losOrNlos) {
+                        pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
+                    else {
+                        pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
+                    }
 
 //                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
-            } else {
-                cout << "set tx error!!!" << endl;
-            }
+                } else {
+                    cout << "set tx error!!!" << endl;
+                }
 
-            //没有涉及相关距离的阴影衰落
-            std::default_random_engine generator(i);
-            //std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
-            std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
-            shadowFading = dB::Linear2dB(Lognormal(generator));
-            i = i + 100;
+                //没有涉及相关距离的阴影衰落
+                std::default_random_engine generator(i);
+                //std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
+                std::lognormal_distribution<double> Lognormal(0.0, STDDeviation);
+                shadowFading = dB::Linear2dB(Lognormal(generator));
+                i = i + 100;
 
 //        /****Shadow_Fadings****/
 //        double temp_double = STD_DEVIATION * randn();
 //        shadowFading = sqrt(SHADOW_CORREATION) * (temp_double + STD_DEVIATION * randn());
 
-            shadowFading = 0;
-            antennaGain = 0;
+                shadowFading = 0;
+                antennaGain = 0;
 
-            linkLoss = pathLoss + shadowFading + antennaGain;
-            mLinkLoss[IDtemp] = linkLoss;
+                linkLoss = pathLoss + shadowFading + antennaGain;
+                mLinkLoss[IDtemp] = linkLoss;
 
-            channelGain = pow(10, -linkLoss / 10);
-            mChannelGain[IDtemp] = channelGain;
+                channelGain = pow(10, -linkLoss / 10);
+                mChannelGain[IDtemp] = channelGain;
+            }
         }
     }
 }

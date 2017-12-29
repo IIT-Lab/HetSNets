@@ -351,4 +351,38 @@ void pushSumRate(int _cueNum, int _D2DNum, int _RBNUM, double _SumRate, int _alg
     mysql->destroyConnection();
 }
 
+double GetSystemCapacity(int _cueNum, int _D2DNum, int _RBNUM, int _algorithm) {
+    string cueNum = intToString(_cueNum);
+    string D2DNum = intToString(_D2DNum);
+    string RBNum = intToString(_RBNUM);
+    string algorithm = intToString(_algorithm);
+
+    double systemCapacity = 0;
+    double sumSystemCapacity = 0;
+    double averageSystemCapacity = 0;
+
+    MySQLManager *mysql = new MySQLManager("127.0.0.1", "root", "", "platform", (unsigned int)3306);
+    mysql->initConnection();
+    if(mysql->getConnectionStatus()) {
+        mysql->clearResultList();
+        string SQLString = "SELECT SystemCapacity FROM SystemCapacityPerSlot WHERE CUENUM = " + cueNum + " AND D2DNUM = " + D2DNum + " AND RBNUM = " + RBNum + " AND algorithm = " + algorithm;
+        if(mysql->runSQLCommand(SQLString)) {
+            vector<vector<string> > result = mysql->getResult();
+            for(auto & vec : result) {
+                for(auto &str : vec) {
+                    string strSystemCapacity = str.c_str();
+                    systemCapacity = string2Double(strSystemCapacity);
+                    sumSystemCapacity = sumSystemCapacity + systemCapacity;
+                }
+            }
+            averageSystemCapacity = sumSystemCapacity / result.size();
+        }
+        else
+            cout << "执行失败" << endl;
+    }
+    mysql->destroyConnection();
+
+    return averageSystemCapacity;
+}
+
 

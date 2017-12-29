@@ -741,10 +741,15 @@ void D2DHypergraphColoring(map<int, D2DPair *> &_mapID2D2DPairPtr, vector<vector
                     channelGain = pow(10, -linkloss / 10);//线性值
                     signalPow = D2DTxPower * channelGain;
                     //计算蜂窝用户的干扰
-                    macroUserPower = coloredMacroUser->getPower();
-                    linkloss = GetLinkloss(coloredMacroUser->getUID(), temp->getRxID(), SystemDriveBus::iSlot);
-                    channelGain = pow(10, -linkloss / 10);//线性值
-                    interferencePow = macroUserPower * channelGain;
+                    if (coloredMacroUser != nullptr) {
+                        macroUserPower = coloredMacroUser->getPower();
+                        linkloss = GetLinkloss(coloredMacroUser->getUID(), temp->getRxID(), SystemDriveBus::iSlot);
+                        channelGain = pow(10, -linkloss / 10);//线性值
+                        interferencePow = macroUserPower * channelGain;
+                    } else {
+                        interferencePow = 0;
+                    }
+
                     for (auto interNode : vecColoredNode) {
                         if (interNode->getID() != temp->getID()) { //计算干扰信号功率
                             D2DTxPower = interNode->getPower();

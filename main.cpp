@@ -11,80 +11,100 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
-    if (0) {
+    if (1) {
         double sinr = 0;
         double rate = 0;
-        int macroUserNum = 20;
+        double systemCapacity = 0;
+        int macroUserNum = 10;
         int D2DNum = 20;
-        int slotNum = 100;
+        int RBNum = 10;
+        int slotNum = 30;
 
-        cout << "普通图：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = 0; slot < slotNum / 2; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot, TxID);
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = 0; slot < slotNum / 2; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot, TxID);
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
+        /******************************系统容量统计*******************************/
+        cout << "CUENUM:" << macroUserNum << endl;
+        cout << "D2DNUM:" << D2DNum << endl;
+        cout << "RBNUM:" << RBNum << endl;
 
-        cout << "超图：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = slotNum / 2; slot < slotNum; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot, TxID);
+        cout << "----------普通图----------" << endl;
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 1);
+        cout << "平均系统容量:" << systemCapacity << endl;
+
+        cout << "----------超图----------" << endl;
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 2);
+        cout << "平均系统容量:" << systemCapacity << endl;
+
+        cout << "----------干扰区域超图----------" << endl;
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 3);
+        cout << "平均系统容量:" << systemCapacity << endl;
+        /******************************系统容量统计*******************************/
+
+//        cout << "普通图：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = 0; slot < slotNum; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot, TxID);
 //            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
 //            cout << sinr << ";" << endl;
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = slotNum / 2; slot < slotNum; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot, TxID);
+////                if (sinr == 0) {
+////                    rate = 0;
+////                } else {
+////                    sinr = pow(10, sinr / 10);
+////                    rate = log2(1 + sinr);
+////                }
+////                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = 0; slot < slotNum; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot, TxID);
 //            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
 //            cout << sinr << ";" << endl;
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
+////                if (sinr == 0) {
+////                    rate = 0;
+////                } else {
+////                    sinr = pow(10, sinr / 10);
+////                    rate = log2(1 + sinr);
+////                }
+////                cout << rate << ";" << endl;
+//            }
+//        }
+
+//        cout << "超图：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot, TxID);
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot, TxID);
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
 
         return 0;
     }
