@@ -177,10 +177,17 @@ public:
 
     double getOrder() const;
 
+    void deleteEdge(int edgeID);
+
+    void deleteColor(int colorID);
+
+    double getTx2BSRadius() const;
+
 private:
     int ID; //编号 从0开始
     int TxID;
     int RxID;
+    double Tx2BSRadius;
     double power; //D2D用户发射功率
     double dXPoint; //D2DTx的坐标
     double dYPoint; //D2DTx的坐标
@@ -209,6 +216,8 @@ void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> 
 void SetD2DGraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DGraph);
 
 void D2DHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
+
+void myHypergraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DHypergraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
 
 void D2DGraphColoring(map<int, D2DPair*> &_mapID2D2DPairPtr, vector<vector<int>> _D2DGraph, int _colorNum, map<int, macroUser*> _mapID2MUEPtr);
 

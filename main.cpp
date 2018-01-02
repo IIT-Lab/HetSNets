@@ -215,11 +215,17 @@ int main()
     cout << "********************************************" << endl;
 
 //    if (graphSumRate < hypergraphSumRate && graphSumRate < SLAhypergraphSumRate && SLAhypergraphSumRate < hypergraphSumRate) {
-    if (graphSumRate < hypergraphSumRate && graphSumRate < SLAhypergraphSumRate) {
-        pushSumRate(cueNum, D2DNum, RBNUM, graphSumRate, 1);
-        pushSumRate(cueNum, D2DNum, RBNUM, hypergraphSumRate, 2);
-        pushSumRate(cueNum, D2DNum, RBNUM, SLAgraphSumRate, 3);
-        pushSumRate(cueNum, D2DNum, RBNUM, SLAhypergraphSumRate, 4);
+    if (graphSumRate <= hypergraphSumRate) {
+        if(1) {
+//        if (graphSumRate <= SLAhypergraphSumRate) {
+//            if(1) {
+            if (SLAgraphSumRate <= SLAhypergraphSumRate) {
+                pushSumRate(cueNum, D2DNum, RBNUM, graphSumRate, 1);
+                pushSumRate(cueNum, D2DNum, RBNUM, hypergraphSumRate, 2);
+                pushSumRate(cueNum, D2DNum, RBNUM, SLAgraphSumRate, 3);
+                pushSumRate(cueNum, D2DNum, RBNUM, SLAhypergraphSumRate, 4);
+            }
+        }
     }
 
     return 0;

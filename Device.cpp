@@ -276,7 +276,7 @@ void MacroCell::Scheduler() {
         /********************************贪婪图着色*********************************/
         map<int, hyperNode*> mapNodeID2HyperNodePtr;
 //        if (0) {
-        if (SystemDriveBus::iSlot >= 0 && SystemDriveBus::iSlot < 1) {
+        if (SystemDriveBus::iSlot%4 >= 0 && SystemDriveBus::iSlot%4 < 1) {
             cout << "*****************图构建*****************" << endl;
             SetGraph(threshold);
             int nodeNum = (int)graph.size();
@@ -294,7 +294,7 @@ void MacroCell::Scheduler() {
 
         /********************************超图着色*********************************/
 //        if (0) {
-        if (SystemDriveBus::iSlot >= 1 && SystemDriveBus::iSlot < 2) {
+        if (SystemDriveBus::iSlot%4 >= 1 && SystemDriveBus::iSlot%4 < 2) {
             cout << "*****************超图构建*****************" << endl;
             SetHypergraph(threshold);
             int nodeNum = (int)hypergraph.size();
@@ -311,8 +311,8 @@ void MacroCell::Scheduler() {
         /********************************超图着色*********************************/
 
         /********************************干扰区域图着色*********************************/
-//        if (1) {
-        if (SystemDriveBus::iSlot >= 2 && SystemDriveBus::iSlot < 3) {
+//        if (0) {
+        if (SystemDriveBus::iSlot%4 >= 2 && SystemDriveBus::iSlot%4 < 3) {
             cout << "*****************干扰区域构建*****************" << endl;
             map<int, macroUser*> mapID2MUEPtr;
             for (int macroUserID : vecMacroUserID) {
@@ -377,8 +377,8 @@ void MacroCell::Scheduler() {
         /********************************干扰区域图着色*********************************/
 
         /********************************干扰区域超图着色*********************************/
-//        if (0) {
-        if (SystemDriveBus::iSlot >= 3) {
+//        if (1) {
+        if (SystemDriveBus::iSlot%4 >= 3) {
             cout << "*****************干扰区域构建*****************" << endl;
             map<int, macroUser*> mapID2MUEPtr;
             for (int macroUserID : vecMacroUserID) {
@@ -429,6 +429,7 @@ void MacroCell::Scheduler() {
 
             cout << "*****************D2D超图着色*****************" << endl;
             D2DHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM, mapID2MUEPtr);
+//            myHypergraphColoring(mapID2D2DPairPtr, D2DHypergraph, RBNUM, mapID2MUEPtr);
 
             for (auto temp : mapID2D2DPairPtr) {
                 TxID = temp.second->getTxID();
