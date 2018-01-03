@@ -11,14 +11,14 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
-    if (0) {
+    if (1) {
         double sinr = 0;
         double rate = 0;
         double systemCapacity = 0;
-        int macroUserNum = 5;
-        int D2DNum = 15;
-        int RBNum = 5;
-        int slotNum = 30;
+        int macroUserNum = 10;
+        int D2DNum = 40;
+        int RBNum = 10;
+        int slotNum = 21;
 
         /******************************系统容量统计*******************************/
         cout << "CUENUM:" << macroUserNum << endl;
@@ -26,89 +26,89 @@ int main()
         cout << "RBNUM:" << RBNum << endl;
 
         cout << "----------普通图----------" << endl;
-        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 1);
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 0);
         cout << "平均系统容量:" << systemCapacity << endl;
 
         cout << "----------超图----------" << endl;
-        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 2);
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 1);
         cout << "平均系统容量:" << systemCapacity << endl;
 
         cout << "----------干扰区域图----------" << endl;
-        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 3);
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 2);
         cout << "平均系统容量:" << systemCapacity << endl;
 
         cout << "----------干扰区域超图----------" << endl;
-        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 4);
+        systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 3);
         cout << "平均系统容量:" << systemCapacity << endl;
         /******************************系统容量统计*******************************/
 
-//        cout << "普通图：" << endl;
-//        cout << "*********************蜂窝用户***********************" << endl;
-//        for (int slot = 0; slot < slotNum; slot++) {
-//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-//                sinr = GetSinr(slot, TxID);
-//            if (sinr == 0) continue;
-////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-////                if (sinr == 0) {
-////                    rate = 0;
-////                } else {
-////                    sinr = pow(10, sinr / 10);
-////                    rate = log2(1 + sinr);
-////                }
-////                cout << rate << ";" << endl;
-//            }
-//        }
-//        cout << "**********************D2D**********************" << endl;
-//        for (int slot = 0; slot < slotNum; slot++) {
-//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-//                sinr = GetSinr(slot, TxID);
-//            if (sinr == 0) continue;
-////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-////                if (sinr == 0) {
-////                    rate = 0;
-////                } else {
-////                    sinr = pow(10, sinr / 10);
-////                    rate = log2(1 + sinr);
-////                }
-////                cout << rate << ";" << endl;
-//            }
-//        }
+        cout << "普通图：" << endl;
+        cout << "*********************蜂窝用户***********************" << endl;
+        for (int slot = 0; slot < slotNum; slot++) {
+            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+            }
+        }
+        cout << "**********************D2D**********************" << endl;
+        for (int slot = 0; slot < slotNum; slot++) {
+            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+            cout << sinr << ";" << endl;
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+            }
+        }
 
-//        cout << "超图：" << endl;
-//        cout << "*********************蜂窝用户***********************" << endl;
-//        for (int slot = slotNum / 2; slot < slotNum; slot++) {
-//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-//                sinr = GetSinr(slot, TxID);
-////            if (sinr == 0) continue;
-////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-////            cout << sinr << ";" << endl;
-//                if (sinr == 0) {
-//                    rate = 0;
-//                } else {
-//                    sinr = pow(10, sinr / 10);
-//                    rate = log2(1 + sinr);
-//                }
-//                cout << rate << ";" << endl;
-//            }
-//        }
-//        cout << "**********************D2D**********************" << endl;
-//        for (int slot = slotNum / 2; slot < slotNum; slot++) {
-//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-//                sinr = GetSinr(slot, TxID);
-////            if (sinr == 0) continue;
-////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-////            cout << sinr << ";" << endl;
-//                if (sinr == 0) {
-//                    rate = 0;
-//                } else {
-//                    sinr = pow(10, sinr / 10);
-//                    rate = log2(1 + sinr);
-//                }
-//                cout << rate << ";" << endl;
-//            }
-//        }
+        cout << "超图：" << endl;
+        cout << "*********************蜂窝用户***********************" << endl;
+        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
+        }
+        cout << "**********************D2D**********************" << endl;
+        for (int slot = slotNum / 2; slot < slotNum; slot++) {
+            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+                sinr = GetSinr(slot, TxID);
+//            if (sinr == 0) continue;
+//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+//            cout << sinr << ";" << endl;
+                if (sinr == 0) {
+                    rate = 0;
+                } else {
+                    sinr = pow(10, sinr / 10);
+                    rate = log2(1 + sinr);
+                }
+                cout << rate << ";" << endl;
+            }
+        }
 
         return 0;
     }
@@ -145,7 +145,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 4;
+    int slot = 100;
 
 //    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 
@@ -166,67 +166,71 @@ int main()
         //每次循环结束　统计一次系统容量
         double sumRatePerSlot;
         sumRatePerSlot = GetSumRate(SystemDriveBus::iSlot);
+        sumRatePerSlot = sumRatePerSlot / 180000 / RBNUM;
         cout << "********************************************" << endl;
-        cout << "第" << SystemDriveBus::iSlot << "个时隙的系统容量:" << sumRatePerSlot / 180000 / RBNUM << endl;
+        cout << "第" << SystemDriveBus::iSlot << "个时隙的系统容量:" << sumRatePerSlot << endl;
         cout << "********************************************" << endl;
+        int cueNum = SystemDriveBus::ModeID2Par.at(1).get_numOfRx();
+        int D2DNum = SystemDriveBus::ModeID2Par.at(4).get_numOfRx();
+        pushSumRate(cueNum, D2DNum, RBNUM, sumRatePerSlot, SystemDriveBus::iSlot % 4);
 
         SystemDriveBus::iSlot++;
     }
 
-    ////统计
-    cout << endl << endl;
-    cout << "//////////////////////////////////////////////////////////////////" << endl;
-    int cueNum = SystemDriveBus::ModeID2Par.at(1).get_numOfRx();
-    int D2DNum = SystemDriveBus::ModeID2Par.at(4).get_numOfRx();
-    cout << "CUE NUM: " << cueNum << endl;
-    cout << "D2D NUM: " << D2DNum << endl;
-    cout << "RB NUM: " << RBNUM << endl;
-
-    double graphSumRate;
-    graphSumRate = GetSumRate(0);
-    graphSumRate = graphSumRate / 180000 / RBNUM;
-    cout << "********************************************" << endl;
-    cout << "图着色的系统容量:" << graphSumRate << endl;
-//    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 1);
-    cout << "********************************************" << endl;
-
-    double hypergraphSumRate;
-    hypergraphSumRate = GetSumRate(1);
-    hypergraphSumRate = hypergraphSumRate / 180000 / RBNUM;
-    cout << "********************************************" << endl;
-    cout << "超图着色的系统容量:" << hypergraphSumRate << endl;
-//    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 2);
-    cout << "********************************************" << endl;
-
-    double SLAgraphSumRate;
-    SLAgraphSumRate = GetSumRate(2);
-    SLAgraphSumRate = SLAgraphSumRate / 180000 / RBNUM;
-    cout << "********************************************" << endl;
-    cout << "干扰区域图着色的系统容量:" << SLAgraphSumRate << endl;
-//    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 3);
-    cout << "********************************************" << endl;
-
-    double SLAhypergraphSumRate;
-    SLAhypergraphSumRate = GetSumRate(3);
-    SLAhypergraphSumRate = SLAhypergraphSumRate / 180000 / RBNUM;
-    cout << "********************************************" << endl;
-    cout << "干扰区域超图着色的系统容量:" << SLAhypergraphSumRate << endl;
-//    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 4);
-    cout << "********************************************" << endl;
-
-//    if (graphSumRate < hypergraphSumRate && graphSumRate < SLAhypergraphSumRate && SLAhypergraphSumRate < hypergraphSumRate) {
-    if (graphSumRate <= hypergraphSumRate) {
-        if(1) {
-//        if (graphSumRate <= SLAhypergraphSumRate) {
-//            if(1) {
-            if (SLAgraphSumRate <= SLAhypergraphSumRate) {
-                pushSumRate(cueNum, D2DNum, RBNUM, graphSumRate, 1);
-                pushSumRate(cueNum, D2DNum, RBNUM, hypergraphSumRate, 2);
-                pushSumRate(cueNum, D2DNum, RBNUM, SLAgraphSumRate, 3);
-                pushSumRate(cueNum, D2DNum, RBNUM, SLAhypergraphSumRate, 4);
-            }
-        }
-    }
+//    ////统计
+//    cout << endl << endl;
+//    cout << "//////////////////////////////////////////////////////////////////" << endl;
+//    int cueNum = SystemDriveBus::ModeID2Par.at(1).get_numOfRx();
+//    int D2DNum = SystemDriveBus::ModeID2Par.at(4).get_numOfRx();
+//    cout << "CUE NUM: " << cueNum << endl;
+//    cout << "D2D NUM: " << D2DNum << endl;
+//    cout << "RB NUM: " << RBNUM << endl;
+//
+//    double graphSumRate;
+//    graphSumRate = GetSumRate(0);
+//    graphSumRate = graphSumRate / 180000 / RBNUM;
+//    cout << "********************************************" << endl;
+//    cout << "图着色的系统容量:" << graphSumRate << endl;
+////    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 0);
+//    cout << "********************************************" << endl;
+//
+//    double hypergraphSumRate;
+//    hypergraphSumRate = GetSumRate(1);
+//    hypergraphSumRate = hypergraphSumRate / 180000 / RBNUM;
+//    cout << "********************************************" << endl;
+//    cout << "超图着色的系统容量:" << hypergraphSumRate << endl;
+////    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 1);
+//    cout << "********************************************" << endl;
+//
+//    double SLAgraphSumRate;
+//    SLAgraphSumRate = GetSumRate(2);
+//    SLAgraphSumRate = SLAgraphSumRate / 180000 / RBNUM;
+//    cout << "********************************************" << endl;
+//    cout << "干扰区域图着色的系统容量:" << SLAgraphSumRate << endl;
+////    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 2);
+//    cout << "********************************************" << endl;
+//
+//    double SLAhypergraphSumRate;
+//    SLAhypergraphSumRate = GetSumRate(3);
+//    SLAhypergraphSumRate = SLAhypergraphSumRate / 180000 / RBNUM;
+//    cout << "********************************************" << endl;
+//    cout << "干扰区域超图着色的系统容量:" << SLAhypergraphSumRate << endl;
+////    pushSumRate(cueNum, D2DNum, RBNUM, sumRate, 3);
+//    cout << "********************************************" << endl;
+//
+////    if (graphSumRate < hypergraphSumRate && graphSumRate < SLAhypergraphSumRate && SLAhypergraphSumRate < hypergraphSumRate) {
+//    if (graphSumRate <= hypergraphSumRate) {
+//        if(1) {
+////        if (graphSumRate <= SLAhypergraphSumRate) {
+////            if(1) {
+//            if (SLAgraphSumRate <= SLAhypergraphSumRate) {
+//                pushSumRate(cueNum, D2DNum, RBNUM, graphSumRate, 0);
+//                pushSumRate(cueNum, D2DNum, RBNUM, hypergraphSumRate, 1);
+//                pushSumRate(cueNum, D2DNum, RBNUM, SLAgraphSumRate, 2);
+//                pushSumRate(cueNum, D2DNum, RBNUM, SLAhypergraphSumRate, 3);
+//            }
+//        }
+//    }
 
     return 0;
 }

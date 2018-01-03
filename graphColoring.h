@@ -117,6 +117,10 @@ public:
 
     double getPower() const;
 
+    void SetSIRRadius();
+
+    double getSIRRadius() const;
+
 private:
     int uID;
     double power; //宏蜂窝用户发射功率
@@ -125,6 +129,8 @@ private:
     double cellRadius; //宏蜂窝半径
     int color; //节点的颜色
     vector<double> SLARadius; //离散干扰区域半径
+
+    double SIRRadius;
 };
 
 /********************************macroUser类*********************************/
@@ -207,9 +213,13 @@ private:
 
 void SLAComputing(map<int, macroUser*> &_mapID2MUEPtr); //干扰区域计算
 
+void SIRComputing(map<int, macroUser*> &_mapID2MUEPtr); //干扰区域计算
+
 void macroUserColoring(map<int, macroUser*> &_mapID2MUEPtr, int _colorNum); //给蜂窝用户着色
 
 void SetD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr, int _colorNum);
+
+void SetSIRD2DPair(map<int, macroUser*> _mapID2MUEPtr, map<int, D2DPair*> &_mapID2D2DPairPtr, int _colorNum);
 
 void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph);
 

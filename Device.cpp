@@ -322,7 +322,7 @@ void MacroCell::Scheduler() {
                 mapID2MUEPtr.insert(pair<int, macroUser*>(macroUserID, macroUserPtr));
             }
 
-            SLAComputing(mapID2MUEPtr);
+            SIRComputing(mapID2MUEPtr);
 
             cout << "*****************蜂窝用户着色*****************" << endl;
             macroUserColoring(mapID2MUEPtr, RBNUM);
@@ -356,7 +356,7 @@ void MacroCell::Scheduler() {
             }
 
             //根据干扰区域初始化 D2D pair 的候选颜色集
-            SetD2DPair(mapID2MUEPtr, mapID2D2DPairPtr, RBNUM);
+            SetSIRD2DPair(mapID2MUEPtr, mapID2D2DPairPtr, RBNUM);
 
             //构造以 D2D pair 为节点的图
             SetD2DGraph(mapID2D2DPairPtr, D2DGraph);
@@ -1269,7 +1269,7 @@ User::User(string _user_type)
         double x, y, tempx, tempy;
         int randCell;
 //        double cell_radius = Macro_mode_par.get_radius();
-        double cell_radius = 300;
+        double cell_radius = 400;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;

@@ -214,7 +214,7 @@ void channel::UpdateAllTxLinkLossTable()
 //        double temp_double = STD_DEVIATION * randn();
 //        shadowFading = sqrt(SHADOW_CORREATION) * (temp_double + STD_DEVIATION * randn());
 
-                shadowFading = 0;
+//                shadowFading = 0;
                 antennaGain = 0;
 
                 linkLoss = pathLoss + shadowFading + antennaGain;
@@ -224,6 +224,8 @@ void channel::UpdateAllTxLinkLossTable()
                 mChannelGain[IDtemp] = channelGain;
             }
         }
+    } else {
+        cout << "导入信道:" << iID << endl;
     }
 }
 
