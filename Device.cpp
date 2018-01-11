@@ -8,6 +8,7 @@
 #include "Global.h"
 #include "InterferenceIndex.h"
 #include "graphColoring.h"
+#include "ResourceAllocation.h"
 
 int MacroCell::countTag = 0;
 int SmallCell::countTag = 0;
@@ -281,6 +282,7 @@ void MacroCell::Scheduler() {
             SetGraph(threshold);
             int nodeNum = (int)graph.size();
 
+            mapNodeID2HyperNodePtr.clear();
             for (int i = 0; i < nodeNum; ++i) {
                 hyperNode* hyperNodePtr = new hyperNode(i);
                 hyperNodePtr->initial(graph);
@@ -289,6 +291,7 @@ void MacroCell::Scheduler() {
             cout << "*****************图着色*****************" << endl;
             hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
             cout << "*****************着色结束*****************" << endl;
+            graph.clear();
         }
         /********************************贪婪图着色*********************************/
 
@@ -299,6 +302,7 @@ void MacroCell::Scheduler() {
             SetHypergraph(threshold);
             int nodeNum = (int)hypergraph.size();
 
+            mapNodeID2HyperNodePtr.clear();
             for (int i = 0; i < nodeNum; ++i) {
                 hyperNode* hyperNodePtr = new hyperNode(i);
                 hyperNodePtr->initial(hypergraph);
@@ -307,74 +311,54 @@ void MacroCell::Scheduler() {
             cout << "*****************超图着色*****************" << endl;
             hypergraghColoring(mapNodeID2HyperNodePtr, RBNUM);
             cout << "*****************着色结束*****************" << endl;
+            hypergraph.clear();
         }
         /********************************超图着色*********************************/
 
-        /********************************干扰区域图着色*********************************/
+        /********************************经典贪婪算法*********************************/
 //        if (0) {
         if (SystemDriveBus::iSlot%4 >= 2 && SystemDriveBus::iSlot%4 < 3) {
-            cout << "*****************干扰区域构建*****************" << endl;
-            map<int, macroUser*> mapID2MUEPtr;
-            for (int macroUserID : vecMacroUserID) {
-                double linkloss = GetLinkloss(macroUserID, 0, SystemDriveBus::iSlot);
+            map<int, RR::MUser*> mapID2MUserPtr;
+            for (int MUserID : vecMacroUserID) {
+                double linkloss = GetLinkloss(MUserID, 0, SystemDriveBus::iSlot);
                 double channelGain = pow(10, -linkloss / 10);//线性值
-                macroUser* macroUserPtr = new macroUser(macroUserID, MacroUserTxPower, D2DTxPower, channelGain, cellRadius);
-                mapID2MUEPtr.insert(pair<int, macroUser*>(macroUserID, macroUserPtr));
+                double cqi = 0;
+                if (SystemDriveBus::iSlot / 4) {
+                    cqi = GetSinr(SystemDriveBus::iSlot - 1, MUserID);
+                }
+                RR::MUser* MUserPtr = new RR::MUser(MUserID, MacroUserTxPower, channelGain, cqi);
+                mapID2MUserPtr.insert(pair<int, RR::MUser*>(MUserID, MUserPtr));
             }
-
-            SIRComputing(mapID2MUEPtr);
-
-            cout << "*****************蜂窝用户着色*****************" << endl;
-            macroUserColoring(mapID2MUEPtr, RBNUM);
-
+            cout << "*****************给蜂窝用户分配信道资源*****************" << endl;
+            MUserRBAllocation(mapID2MUserPtr, RBNUM);
             int TxID, RxID, RBID;
-            for (auto temp : mapID2MUEPtr) {
+            for (auto temp : mapID2MUserPtr) {
                 TxID = temp.second->getUID();
                 RxID = 0;
-                RBID = temp.second->getColor();
+                RBID = temp.second->getRBID();
                 MacroUserTxPower = temp.second->getPower();
                 PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, MacroUserTxPower);
             }
 
-            cout << "*****************图构建*****************" << endl;
-            map<int, D2DPair*> mapID2D2DPairPtr;
-            vector<vector<int>> D2DGraph; //表示图的矩阵incidence Matrix
-
-            //构建 D2D pair ID 对 D2D pair 指针登记表
-            int D2DPairID = 0;
-            for (auto temp : mapD2DUserID) {
-                D2DPair* D2DPairPtr = new D2DPair(D2DPairID, temp.first, temp.second);
-                //初始化initial 添加用户发射功率和坐标
-                int D2DTxID = temp.first;
-                User * D2DTxPtr = dynamic_cast<User *>(SystemDriveBus::ID2PtrBus.at(D2DTxID));
-                double dXPoint = D2DTxPtr->getDXPoint();
-                double dYPoint = D2DTxPtr->getDYPoint();
-                D2DPairPtr->initial(D2DTxPower, dXPoint, dYPoint);
-
-                mapID2D2DPairPtr.insert(pair<int, D2DPair*>(D2DPairID, D2DPairPtr));
-                D2DPairID++;
+            if (SystemDriveBus::iSlot / 4) { //从第二个时隙开始
+                cout << "*****************给D2D用户分配信道资源*****************" << endl;
+                map<int, RR::D2DPair*> mapID2D2DPairPtr;
+                //构建 D2D pair ID 对 D2D pair 指针登记表
+                int D2DPairID = 0;
+                for (auto temp : mapD2DUserID) {
+                    TxID = temp.first;
+                    RxID = temp.second;
+                    double linkloss = GetLinkloss(TxID, RxID, SystemDriveBus::iSlot);
+                    double channelGain = pow(10, -linkloss / 10);//线性值
+                    RR::D2DPair* D2DPairPtr = new RR::D2DPair(D2DPairID, TxID, RxID, D2DTxPower, channelGain);
+                    mapID2D2DPairPtr.insert(pair<int, RR::D2DPair*>(D2DPairID, D2DPairPtr));
+                    D2DPairID++;
+                }
+                //分配RB
+                D2DPairRBAllocation(mapID2MUserPtr, mapID2D2DPairPtr);
             }
-
-            //根据干扰区域初始化 D2D pair 的候选颜色集
-            SetSIRD2DPair(mapID2MUEPtr, mapID2D2DPairPtr, RBNUM);
-
-            //构造以 D2D pair 为节点的图
-            SetD2DGraph(mapID2D2DPairPtr, D2DGraph);
-
-            cout << "*****************D2D图着色*****************" << endl;
-            D2DGraphColoring(mapID2D2DPairPtr, D2DGraph, RBNUM, mapID2MUEPtr);
-
-            for (auto temp : mapID2D2DPairPtr) {
-                TxID = temp.second->getTxID();
-                RxID = temp.second->getRxID();;
-                RBID = temp.second->getColor();
-                D2DTxPower = temp.second->getPower();
-                PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
-            }
-
-            cout << "*****************D2D着色结束*****************" << endl;
         }
-        /********************************干扰区域图着色*********************************/
+        /********************************经典贪婪算法*********************************/
 
         /********************************干扰区域超图着色*********************************/
 //        if (1) {
@@ -493,6 +477,7 @@ void MacroCell::PushRBAllocation2MySQL(int _TxID, int _RxID, int _RBID, int _slo
 
 void MacroCell::SetGraph(double _threshold) {
     graph.clear();
+    mapEdgeVecNodes.clear();
     int MacroUserNum = (int)vecMacroUserID.size();
     int D2DPairNum = (int)mapD2DUserID.size();
     int nodeNum = MacroUserNum + D2DPairNum;
@@ -606,14 +591,14 @@ void MacroCell::SetGraph(double _threshold) {
         graph.push_back(vecNode2Edge);
     }
 
-//    //输出图
-//    for (int i = 0; i < graph.size(); ++i) {
-//        for (int j = 0; j < graph[0].size(); ++j) {
-//            cout << graph[i][j] << ",";
-//        }
-//        cout << endl;
-//    }
-//    cout << endl;
+    //输出图
+    for (int i = 0; i < graph.size(); ++i) {
+        for (int j = 0; j < graph[0].size(); ++j) {
+            cout << graph[i][j] << ",";
+        }
+        cout << endl;
+    }
+    cout << endl;
 }
 
 void MacroCell::SetVecMacroUserID() {
@@ -642,6 +627,7 @@ void MacroCell::SetMapD2DUserID() {
 
 void MacroCell::SetHypergraph(double _threshold) {
     hypergraph.clear();
+    mapEdgeVecNodes.clear();
     int MacroUserNum = (int)vecMacroUserID.size();
     int D2DPairNum = (int)mapD2DUserID.size();
     int nodeNum = MacroUserNum + D2DPairNum;
@@ -873,14 +859,14 @@ void MacroCell::SetHypergraph(double _threshold) {
         hypergraph.push_back(vecNode2Edge);
     }
 
-//    //输出图
-//    for (int i = 0; i < hypergraph.size(); ++i) {
-//        for (int j = 0; j < hypergraph[0].size(); ++j) {
-//            cout << hypergraph[i][j] << ",";
-//        }
-//        cout << endl;
-//    }
-//    cout << endl;
+    //输出图
+    for (int i = 0; i < hypergraph.size(); ++i) {
+        for (int j = 0; j < hypergraph[0].size(); ++j) {
+            cout << hypergraph[i][j] << ",";
+        }
+        cout << endl;
+    }
+    cout << endl;
 }
 
 ///////////////////////////SmallCell类///////////////////////////////
@@ -1269,7 +1255,7 @@ User::User(string _user_type)
         double x, y, tempx, tempy;
         int randCell;
 //        double cell_radius = Macro_mode_par.get_radius();
-        double cell_radius = 400;
+        double cell_radius = 300;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;
@@ -1406,7 +1392,7 @@ User::User(string _user_type)
     else if (user_type == "D2DTx") {
         if (SystemDriveBus::system_shape.get_shape() == "circle") {
             double Tx2BSRadius = 0;
-            while (Tx2BSRadius < 100) {
+            while (Tx2BSRadius < 200) {
                 double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
                 double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius());
                 dXPoint = temp_radius * sin(temp_angle);

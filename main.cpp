@@ -11,7 +11,7 @@ string SystemDriveBus::ULorDL;//系统属于上行链路还是下行链路
 
 int main()
 {
-    if (1) {
+    if (0) {
         double sinr = 0;
         double rate = 0;
         double systemCapacity = 0;
@@ -145,7 +145,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 100;
+    int slot = 8;
 
 //    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 
