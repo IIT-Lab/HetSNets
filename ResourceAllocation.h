@@ -43,6 +43,20 @@ namespace RR {
         D2DPair(int _ID, int _TxID, int _RxID, double _power, double _channelGain);
         ~D2DPair();
 
+        int getID() const;
+
+        int getTxID() const;
+
+        int getRxID() const;
+
+        double getPower() const;
+
+        double getChannelGain() const;
+
+        int getRBID() const;
+
+        void setRBID(int RBID);
+
     private:
         int ID; //编号 从0开始
         int TxID;
@@ -54,7 +68,7 @@ namespace RR {
 }
 
 bool comMUserCqi(RR::MUser* MUser1, RR::MUser* MUser2);
-
+bool comD2DPairChannelGain(RR::D2DPair* D2DPair1, RR::D2DPair* D2DPair2);
 
 void MUserRBAllocation(map<int, RR::MUser*> mapID2MUserPtr, int RBNum);
 void D2DPairRBAllocation(map<int, RR::MUser*> mapID2MUserPtr, map<int, RR::D2DPair*> mapID2D2DPairPtr);

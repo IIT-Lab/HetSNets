@@ -356,6 +356,13 @@ void MacroCell::Scheduler() {
                 }
                 //分配RB
                 D2DPairRBAllocation(mapID2MUserPtr, mapID2D2DPairPtr);
+                for (auto temp : mapID2D2DPairPtr) {
+                    TxID = temp.second->getTxID();
+                    RxID = temp.second->getRxID();
+                    RBID = temp.second->getRBID();
+                    D2DTxPower = temp.second->getPower();
+                    PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
+                }
             }
         }
         /********************************经典贪婪算法*********************************/
@@ -417,7 +424,7 @@ void MacroCell::Scheduler() {
 
             for (auto temp : mapID2D2DPairPtr) {
                 TxID = temp.second->getTxID();
-                RxID = temp.second->getRxID();;
+                RxID = temp.second->getRxID();
                 RBID = temp.second->getColor();
                 D2DTxPower = temp.second->getPower();
                 PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, D2DTxPower);
