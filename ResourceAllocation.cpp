@@ -84,33 +84,35 @@ void D2DPairRBAllocation(map<int, RR::MUser *> mapID2MUserPtr, map<int, RR::D2DP
         int D2DPairNum = (int)vecD2DPairPtr.size();
         for (int j = 0; j < D2DPairNum; ++j) {
             RR::D2DPair * tempD2DPair = vecD2DPairPtr[j];
-            //计算SINR
-            double MUserSinr, D2DSinr;
-            int D2DTxID = tempD2DPair->getTxID();
-            int D2DRxID = tempD2DPair->getRxID();
-            double D2DTxPower = tempD2DPair->getPower();
-            D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
-            double D2DPairChannelGain = tempD2DPair->getChannelGain();
-            double M2Dlinkloss = GetLinkloss(MUserID, D2DRxID, SystemDriveBus::iSlot);
-            double M2DchannelGain = pow(10, -M2Dlinkloss / 10);//线性值
-            double D2Blinkloss = GetLinkloss(D2DTxID, BSID, SystemDriveBus::iSlot);
-            double D2BchannelGain = pow(10, -D2Blinkloss / 10);//线性值
+            if (tempD2DPair->getRBID() == -1) { //如果没有被分配
+                //计算SINR
+                double MUserSinr, D2DSinr;
+                int D2DTxID = tempD2DPair->getTxID();
+                int D2DRxID = tempD2DPair->getRxID();
+                double D2DTxPower = tempD2DPair->getPower();
+                D2DTxPower = pow(10, (D2DTxPower - 30) / 10);//W
+                double D2DPairChannelGain = tempD2DPair->getChannelGain();
+                double M2Dlinkloss = GetLinkloss(MUserID, D2DRxID, SystemDriveBus::iSlot);
+                double M2DchannelGain = pow(10, -M2Dlinkloss / 10);//线性值
+                double D2Blinkloss = GetLinkloss(D2DTxID, BSID, SystemDriveBus::iSlot);
+                double D2BchannelGain = pow(10, -D2Blinkloss / 10);//线性值
 
-            double whiteNoise = -174;//-174dBm/Hz
-            double noiseFig = 5;//dB
-            noiseFig = pow(10, noiseFig / 10);//线性值
-            double noisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
+                double whiteNoise = -174;//-174dBm/Hz
+                double noiseFig = 5;//dB
+                noiseFig = pow(10, noiseFig / 10);//线性值
+                double noisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
-            MUserSinr = MUserPower * MUserChannelGain / (D2DTxPower * D2BchannelGain + noisePow);
-            MUserSinr = 10 * log10(MUserSinr);//dB值
-            D2DSinr = D2DTxPower * D2DPairChannelGain / (MUserPower * M2DchannelGain + noisePow);
-            D2DSinr = 10 * log10(D2DSinr);//dB值
+                MUserSinr = MUserPower * MUserChannelGain / (D2DTxPower * D2BchannelGain + noisePow);
+                MUserSinr = 10 * log10(MUserSinr);//dB值
+                D2DSinr = D2DTxPower * D2DPairChannelGain / (MUserPower * M2DchannelGain + noisePow);
+                D2DSinr = 10 * log10(D2DSinr);//dB值
 
-            if (MUserSinr > 10 && D2DSinr > 10) {
-                tempD2DPair->setRBID(RBID);
-                break;
-            } else {
-                continue;
+                if (MUserSinr > 10 && D2DSinr > 10) {
+                    tempD2DPair->setRBID(RBID);
+                    break;
+                } else {
+//                continue;
+                }
             }
         }
     }

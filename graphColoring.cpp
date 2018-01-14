@@ -503,7 +503,10 @@ void SetD2DPair(map<int, macroUser *> _mapID2MUEPtr, map<int, D2DPair *> &_mapID
 
 void SetD2DHypergraph(map<int, D2DPair*> _mapID2D2DPairPtr, vector<vector<int>> &_D2DHypergraph) {
     int nodeNum = (int)_mapID2D2DPairPtr.size();
-    double D2DTxPower = _mapID2D2DPairPtr.at(0)->getPower();
+    double D2DTxPower = 0;
+    if (_mapID2D2DPairPtr.size()) {
+        D2DTxPower = _mapID2D2DPairPtr.at(0)->getPower();
+    }
     double threshold = 20; //dB
     int edgeID = 0;
 

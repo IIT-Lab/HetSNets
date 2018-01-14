@@ -68,9 +68,15 @@ void SoftwareEntityRx::SinrComputing()//SINR计算，包含导入BLER曲线，�
                 linkloss = tempLinklossPower.second.first;//dB
                 channelGain = pow(10, -linkloss / 10);//线性值
                 totalPow += txPow * channelGain;
+            }
+            for (auto tempLinklossPower : tempMap.second) {
                 TxID = tempLinklossPower.first;
                 for (auto _MainTxID : vecMainTxID) {
                     if (TxID == _MainTxID) {
+                        txPow = tempLinklossPower.second.second;
+                        txPow = pow(10, (txPow - 30) / 10);//W
+                        linkloss = tempLinklossPower.second.first;//dB
+                        channelGain = pow(10, -linkloss / 10);//线性值
                         signalPow = txPow * channelGain;
                         cout << "RBID: " << RBID << endl;
                         cout << "TxID: " << TxID << endl;

@@ -1262,7 +1262,7 @@ User::User(string _user_type)
         double x, y, tempx, tempy;
         int randCell;
 //        double cell_radius = Macro_mode_par.get_radius();
-        double cell_radius = 300;
+        double cell_radius = 400;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;
@@ -1399,7 +1399,7 @@ User::User(string _user_type)
     else if (user_type == "D2DTx") {
         if (SystemDriveBus::system_shape.get_shape() == "circle") {
             double Tx2BSRadius = 0;
-            while (Tx2BSRadius < 200) {
+            while (Tx2BSRadius < 100) {
                 double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
                 double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius());
                 dXPoint = temp_radius * sin(temp_angle);
