@@ -350,10 +350,10 @@ macroUser::~macroUser() {
 }
 
 void macroUser::SetSLARadius() {
-    double targetSinr = 10; //dB
+    double targetSinr = 20; //dB
     targetSinr = pow(10, targetSinr / 10); //线性值
     double targetOutageProbability = 0.01; //目标中断概率
-    double PLExponent = 7;
+    double PLExponent = 4;
 
     //1个RB,12个连续的载波,12*15000=180000Hz
     double whiteNoise = -174;//-174dBm/Hz
@@ -361,17 +361,20 @@ void macroUser::SetSLARadius() {
     noiseFig = pow(10, noiseFig / 10);//线性值
     double noisePow = pow(10, (whiteNoise - 30) / 10) * 180000 * noiseFig;//线性值
 
+    double D2DTxPow = pow(10, (D2DTxPower - 30) / 10); //线性
+    double MacroUserPow = pow(10, (power - 30) / 10); //线性
+
 //    double pathLoss_0 = -10 * log10(targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow));//dB
 //    pathLoss_0 = pow(10, -pathLoss_0 / 10);//线性值
-    double pathLoss_0 = targetOutageProbability / D2DTxPower * (power * channelGain / targetSinr - noisePow);//线性
+    double pathLoss_0 = targetOutageProbability / D2DTxPow * (MacroUserPow * channelGain / targetSinr - noisePow);//线性
     double d_0; //干扰保护区域半径
     if (pathLoss_0 < 0) {
         d_0 = cellRadius;
     } else {
-        d_0 = pow(1 / pathLoss_0, 1.0 / PLExponent);
+//        d_0 = pow(1 / pathLoss_0, 1.0 / PLExponent);
+        pathLoss_0 = -10 * log10(pathLoss_0);
+        d_0 = 1000 * pow(10, (pathLoss_0 - 128.1) / 37.6);
     }
-
-    cout << "macroUser: " << uID << " 干扰保护区域半径：" << d_0 << endl;
 
     if (d_0 > cellRadius) { //d_0 大于小区半径
         d_0 = 500;
@@ -379,11 +382,12 @@ void macroUser::SetSLARadius() {
     } else {
         SLARadius.push_back(d_0);
     }
+    cout << "macroUser: " << uID << " 干扰保护区域半径：" << d_0 << endl;
 
     if (d_0 < 500) {
         double d_k = 0; //离散干扰区域半径
         double pathLoss_k;
-        pathLoss_k = targetOutageProbability / D2DTxPower / 2 * (power * channelGain / targetSinr - noisePow);
+        pathLoss_k = targetOutageProbability / D2DTxPow / 2 * (MacroUserPow * channelGain / targetSinr - noisePow);
 
         if (pathLoss_k < 0) {
             d_k = cellRadius;

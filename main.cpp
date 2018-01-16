@@ -15,10 +15,10 @@ int main()
         double sinr = 0;
         double rate = 0;
         double systemCapacity = 0;
-        int macroUserNum = 10;
-        int D2DNum = 30;
-        int RBNum = 10;
-        int slotNum = 16;
+        int macroUserNum = 5;
+        int D2DNum = 20;
+        int RBNum = 5;
+        int slotNum = 40;
 
         /******************************系统容量统计*******************************/
         cout << "CUENUM:" << macroUserNum << endl;
@@ -42,161 +42,161 @@ int main()
         cout << "平均系统容量:" << systemCapacity << endl;
         /******************************系统容量统计*******************************/
 
-        cout << endl;
-        cout << "/////////////////////普通图：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot * 4, TxID);
-
-//            if (sinr == 0) continue;
+//        cout << endl;
+//        cout << "/////////////////////普通图：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot * 4, TxID);
+//
+////            if (sinr == 0) continue;
+//////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot * 4, TxID);
+//
+////            if (sinr == 0) continue;
+//////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//
+//        cout << endl;
+//        cout << "/////////////////////超图：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 1, TxID);
+//
+////            if (sinr == 0) continue;
 ////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot * 4, TxID);
-
-//            if (sinr == 0) continue;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 1, TxID);
+//
+////            if (sinr == 0) continue;
 ////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-
-        cout << endl;
-        cout << "/////////////////////超图：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 1, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 1, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-
-        cout << endl;
-        cout << "/////////////////////经典贪婪：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 2, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 2, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-
-        cout << endl;
-        cout << "/////////////////////干扰区域超图：" << endl;
-        cout << "*********************蜂窝用户***********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 3, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
-        cout << "**********************D2D**********************" << endl;
-        for (int slot = 0; slot < slotNum / 4; slot++) {
-            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
-                sinr = GetSinr(slot * 4 + 3, TxID);
-
-//            if (sinr == 0) continue;
-//            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
-//            cout << sinr << ";" << endl;
-
-                if (sinr == 0) {
-                    rate = 0;
-                } else {
-                    sinr = pow(10, sinr / 10);
-                    rate = log2(1 + sinr);
-                }
-                cout << rate << ";" << endl;
-            }
-        }
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//
+//        cout << endl;
+//        cout << "/////////////////////经典贪婪：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 2, TxID);
+//
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 2, TxID);
+//
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//
+//        cout << endl;
+//        cout << "/////////////////////干扰区域超图：" << endl;
+//        cout << "*********************蜂窝用户***********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 3, TxID);
+//
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
+//        cout << "**********************D2D**********************" << endl;
+//        for (int slot = 0; slot < slotNum / 4; slot++) {
+//            for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+//                sinr = GetSinr(slot * 4 + 3, TxID);
+//
+////            if (sinr == 0) continue;
+////            cout << "TxID: " << TxID << " , SINR: " << sinr << endl;
+////            cout << sinr << ";" << endl;
+//
+//                if (sinr == 0) {
+//                    rate = 0;
+//                } else {
+//                    sinr = pow(10, sinr / 10);
+//                    rate = log2(1 + sinr);
+//                }
+//                cout << rate << ";" << endl;
+//            }
+//        }
 
         return 0;
     }
@@ -233,7 +233,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 100;
+    int slot = 4;
 
 //    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 
@@ -260,9 +260,7 @@ int main()
         cout << "********************************************" << endl;
         int cueNum = SystemDriveBus::ModeID2Par.at(1).get_numOfRx();
         int D2DNum = SystemDriveBus::ModeID2Par.at(4).get_numOfRx();
-        if (SystemDriveBus::iSlot / 4 > 0) {
-            pushSumRate(cueNum, D2DNum, RBNUM, sumRatePerSlot, SystemDriveBus::iSlot % 4);
-        }
+        pushSumRate(cueNum, D2DNum, RBNUM, sumRatePerSlot, SystemDriveBus::iSlot % 4);
 
         SystemDriveBus::iSlot++;
     }

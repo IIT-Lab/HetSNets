@@ -315,7 +315,7 @@ void MacroCell::Scheduler() {
         }
         /********************************超图着色*********************************/
 
-        /********************************经典贪婪算法*********************************/
+        /********************************干扰区域*********************************/
 //        if (0) {
         if (SystemDriveBus::iSlot%4 >= 2 && SystemDriveBus::iSlot%4 < 3) {
             map<int, RR::MUser*> mapID2MUserPtr;
@@ -326,7 +326,11 @@ void MacroCell::Scheduler() {
                 if (SystemDriveBus::iSlot / 4) {
                     cqi = GetSinr(SystemDriveBus::iSlot - 1, MUserID);
                 }
-                RR::MUser* MUserPtr = new RR::MUser(MUserID, MacroUserTxPower, channelGain, cqi);
+                Interface * MUserInterface = SystemDriveBus::ID2PtrBus.at(MUserID);
+                User * tempMUser = dynamic_cast<User *>(MUserInterface);
+                double dXPoint = tempMUser->getDXPoint();
+                double dYPoint = tempMUser->getDYPoint();
+                RR::MUser* MUserPtr = new RR::MUser(MUserID, MacroUserTxPower, channelGain, cqi, dXPoint, dYPoint);
                 mapID2MUserPtr.insert(pair<int, RR::MUser*>(MUserID, MUserPtr));
             }
             cout << "*****************给蜂窝用户分配信道资源*****************" << endl;
@@ -340,7 +344,8 @@ void MacroCell::Scheduler() {
                 PushRBAllocation2MySQL(TxID, RxID, RBID, SystemDriveBus::iSlot, MacroUserTxPower);
             }
 
-            if (SystemDriveBus::iSlot / 4) { //从第二个时隙开始
+//            if (SystemDriveBus::iSlot / 4) { //从第二个时隙开始
+            if (1) { //从第二个时隙开始
                 cout << "*****************给D2D用户分配信道资源*****************" << endl;
                 map<int, RR::D2DPair*> mapID2D2DPairPtr;
                 //构建 D2D pair ID 对 D2D pair 指针登记表
@@ -350,12 +355,22 @@ void MacroCell::Scheduler() {
                     RxID = temp.second;
                     double linkloss = GetLinkloss(TxID, RxID, SystemDriveBus::iSlot);
                     double channelGain = pow(10, -linkloss / 10);//线性值
-                    RR::D2DPair* D2DPairPtr = new RR::D2DPair(D2DPairID, TxID, RxID, D2DTxPower, channelGain);
+                    Interface * TxInterface = SystemDriveBus::ID2PtrBus.at(TxID);
+                    Interface * RxInterface = SystemDriveBus::ID2PtrBus.at(RxID);
+                    User * tempTx = dynamic_cast<User *>(TxInterface);
+                    User * tempRx = dynamic_cast<User *>(RxInterface);
+                    double TxXPoint = tempTx->getDXPoint();
+                    double TxYPoint = tempTx->getDYPoint();
+                    double RxXPoint = tempRx->getDXPoint();
+                    double RxYPoint = tempRx->getDYPoint();
+                    RR::D2DPair* D2DPairPtr = new RR::D2DPair(D2DPairID, TxID, RxID, D2DTxPower, channelGain,
+                                                              TxXPoint, TxYPoint, RxXPoint, RxYPoint);
                     mapID2D2DPairPtr.insert(pair<int, RR::D2DPair*>(D2DPairID, D2DPairPtr));
                     D2DPairID++;
                 }
                 //分配RB
-                D2DPairRBAllocation(mapID2MUserPtr, mapID2D2DPairPtr);
+//                D2DPairRBAllocation(mapID2MUserPtr, mapID2D2DPairPtr);
+                ILARBAllocation(mapID2MUserPtr, mapID2D2DPairPtr);
                 for (auto temp : mapID2D2DPairPtr) {
                     TxID = temp.second->getTxID();
                     RxID = temp.second->getRxID();
@@ -365,7 +380,7 @@ void MacroCell::Scheduler() {
                 }
             }
         }
-        /********************************经典贪婪算法*********************************/
+        /********************************干扰区域*********************************/
 
         /********************************干扰区域超图着色*********************************/
 //        if (1) {
@@ -1262,7 +1277,7 @@ User::User(string _user_type)
         double x, y, tempx, tempy;
         int randCell;
 //        double cell_radius = Macro_mode_par.get_radius();
-        double cell_radius = 400;
+        double cell_radius = 300;
         double inter_side_distance = cell_radius * sqrt(3);
 
         x = ((double) rand() / RAND_MAX - 0.5) * sqrt(3) * inter_side_distance / 2.0;
@@ -1399,7 +1414,7 @@ User::User(string _user_type)
     else if (user_type == "D2DTx") {
         if (SystemDriveBus::system_shape.get_shape() == "circle") {
             double Tx2BSRadius = 0;
-            while (Tx2BSRadius < 100) {
+            while (Tx2BSRadius < 200) {
                 double temp_angle = (double) rand() / RAND_MAX * 2 * PI;
                 double temp_radius = sqrt((double) rand() / RAND_MAX) * (SystemDriveBus::system_shape.get_radius());
                 dXPoint = temp_radius * sin(temp_angle);

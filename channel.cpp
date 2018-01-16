@@ -103,12 +103,22 @@ void channel::UpdateAllTxLinkLossTable()
                     x2 = userTxPtr->getDXPoint();
                     y2 = userTxPtr->getDYPoint();
                     losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+//                    losOrNlos = 0;
                     if (losOrNlos) {
                         pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
                     }
                     else {
                         pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
                     }
+
+                    /////////////////////////////////
+                    double d = getDistance(x1, y1, x2, y2);
+//                    double PLExponent = 3.5;
+//                    double Gain = pow(d, -PLExponent); //线性
+//                    pathLoss = -10 * log10(Gain);
+
+                    pathLoss = 128.1 + 37.6 * log10(d / 1000);
+
                 } else {
                     cout << "set tx Error!!!" << endl;
                 }
@@ -191,12 +201,19 @@ void channel::UpdateAllTxLinkLossTable()
                     y2 = UserTxPtr->getDYPoint();
 
                     losOrNlos = IMTA::losOrNlosSelectUMI(x1, y1, x2, y2);
+//                    losOrNlos = 0;
                     if (losOrNlos) {
                         pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
                     }
                     else {
                         pathLoss = IMTA::vPathLossUMINlos(x1, y1, x2, y2, STDDeviation, fc);
                     }
+
+                    /////////////////////////////////
+                    double d = getDistance(x1, y1, x2, y2);
+                    double PLExponent = 4;
+                    double Gain = pow(d, -PLExponent); //线性
+                    pathLoss = -10 * log10(Gain);
 
 //                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
                 } else {
