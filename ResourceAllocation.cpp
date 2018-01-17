@@ -143,7 +143,7 @@ void ILARBAllocation(map<int, RR::MUser *> mapID2MUserPtr, map<int, RR::D2DPair 
 
     double targetSir = 20; //dB
     targetSir = pow(10, targetSir / 10); //线性值
-    double PLExponent = 4;
+    double PLExponent = 3.5;
     for (auto temp1 : mapID2MUserPtr) {
         RR::MUser * MacroUserPtr = temp1.second;
         int RBID = MacroUserPtr->getRBID();
@@ -178,7 +178,7 @@ void ILARBAllocation(map<int, RR::MUser *> mapID2MUserPtr, map<int, RR::D2DPair 
                         i++;
                     }
                 }
-                if (i > D2DPairNum / MUserNum) break;
+//                if (i > D2DPairNum / MUserNum) break;
             }
         }
     }

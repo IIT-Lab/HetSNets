@@ -15,10 +15,11 @@ int main()
         double sinr = 0;
         double rate = 0;
         double systemCapacity = 0;
-        int macroUserNum = 5;
-        int D2DNum = 20;
-        int RBNum = 5;
-        int slotNum = 40;
+        int macroUserNum = 10;
+        int D2DNum = 30;
+        int RBNum = 10;
+        int slotNum = 44;
+        double targetSir = 10; //dB
 
         /******************************系统容量统计*******************************/
         cout << "CUENUM:" << macroUserNum << endl;
@@ -33,7 +34,7 @@ int main()
         systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 1);
         cout << "平均系统容量:" << systemCapacity << endl;
 
-        cout << "----------经典贪婪----------" << endl;
+        cout << "----------干扰区域----------" << endl;
         systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 2);
         cout << "平均系统容量:" << systemCapacity << endl;
 
@@ -41,6 +42,89 @@ int main()
         systemCapacity = GetSystemCapacity(macroUserNum, D2DNum, RBNum, 3);
         cout << "平均系统容量:" << systemCapacity << endl;
         /******************************系统容量统计*******************************/
+
+        /******************************中断概率统计*******************************/
+        cout << "----------普通图----------" << endl;
+        cout << "//////////蜂窝用户：" << endl;
+        for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+        cout << "//////////D2D用户：" << endl;
+        for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+
+        cout << "----------超图----------" << endl;
+        cout << "//////////蜂窝用户：" << endl;
+        for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 1, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+        cout << "//////////D2D用户：" << endl;
+        for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 1, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+
+        cout << "----------ILA----------" << endl;
+        cout << "//////////蜂窝用户：" << endl;
+        for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 2, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+        cout << "//////////D2D用户：" << endl;
+        for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 2, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+
+        cout << "----------干扰区域超图----------" << endl;
+        cout << "//////////蜂窝用户：" << endl;
+        for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 3, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+        cout << "//////////D2D用户：" << endl;
+        for (int TxID = macroUserNum + 1; TxID <= macroUserNum + D2DNum; ++TxID) {
+            double number = 0;
+            for (int slot = 0; slot < slotNum / 4; slot++) {
+                sinr = GetSinr(slot * 4 + 3, TxID);
+                if (sinr < targetSir) number++;
+            }
+            cout << number / (slotNum / 4) << endl;
+        }
+
+        /******************************中断概率统计*******************************/
 
 //        cout << endl;
 //        cout << "/////////////////////普通图：" << endl;
@@ -121,7 +205,7 @@ int main()
 //        }
 //
 //        cout << endl;
-//        cout << "/////////////////////经典贪婪：" << endl;
+//        cout << "/////////////////////干扰区域：" << endl;
 //        cout << "*********************蜂窝用户***********************" << endl;
 //        for (int slot = 0; slot < slotNum / 4; slot++) {
 //            for (int TxID = 1; TxID <= macroUserNum; ++TxID) {
@@ -233,7 +317,7 @@ int main()
     }
     cout << "初始化函数结束" << endl;
 
-    int slot = 4;
+    int slot = 8;
 
 //    SystemDriveBus::iSlot = -1; //测试!!!!!!!!!!!!!!!!!!!!!!
 

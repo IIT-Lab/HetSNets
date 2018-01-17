@@ -211,9 +211,11 @@ void channel::UpdateAllTxLinkLossTable()
 
                     /////////////////////////////////
                     double d = getDistance(x1, y1, x2, y2);
-                    double PLExponent = 4;
-                    double Gain = pow(d, -PLExponent); //线性
-                    pathLoss = -10 * log10(Gain);
+//                    double PLExponent = 4;
+//                    double Gain = pow(d, -PLExponent); //线性
+//                    pathLoss = -10 * log10(Gain);
+
+                    pathLoss = 128.1 + 37.6 * log10(d / 1000);
 
 //                pathLoss = IMTA::vPathLossUMILos(x1, y1, x2, y2, STDDeviation, fc);
                 } else {
